@@ -1,0 +1,7 @@
+struct Renderer {
+
+}
+
+impl Renderer {
+
+}

@@ -1,8 +1,7 @@
 mod sf;
 mod application;
-
-use sf::Camera;
+mod event_loop;
 
 fn main() {
-    println!("Hello, world!"); 
+    event_loop::run();
 }
