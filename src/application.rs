@@ -15,4 +15,3 @@ impl Application {
 
     }
 }
-// Freakin' Goud was here!
