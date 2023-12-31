@@ -9,10 +9,12 @@ pub fn run() {
         glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core)
     );
 
-    let (mut window, events) = glfw.create_window(300, 300, "Hello, world!", WindowMode::Windowed)
+    let (mut window, events) = glfw.create_window(800, 800, "Hello, world!", WindowMode::Windowed)
         .expect("Failed to create GLFW window.");
 
     window.set_key_polling(true);
+    window.set_cursor_pos_polling(true);
+    window.set_framebuffer_size_polling(true);
     window.make_current();
 
    //load gl functions
@@ -30,16 +32,30 @@ pub fn run() {
         app.glfw_mut().poll_events();
         
         for (_, event) in glfw::flush_messages(&events) {
-            handle_window_event(app.window_mut(), event);
+            handle_window_event(&mut app, event);
         }
     }
 }
 
-fn handle_window_event(window: &mut glfw::Window, event: glfw::WindowEvent) {
+fn handle_window_event(app: &mut Application, event: glfw::WindowEvent) {
     match event {
-        glfw::WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
-            window.set_should_close(true)
+        WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
+            app.window_mut().set_should_close(true)
+        },
+
+        WindowEvent::Key(Key::LeftAlt, _, Action::Press, _) => {
+            if app.window_mut().get_cursor_mode() == CursorMode::Disabled {
+                app.window_mut().set_cursor_mode(CursorMode::Normal)
+            } else {
+                app.window_mut().set_cursor_mode(CursorMode::Disabled)
+            }
+        },
+
+        WindowEvent::CursorPos(x, y) => {
+            let (x, y) = (x as f32, y as f32);
+            app.mouse(x, y);
         }
-        _ => {}
+
+        _ => {},
     }
 }

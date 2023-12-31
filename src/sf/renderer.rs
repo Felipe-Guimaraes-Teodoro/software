@@ -3,6 +3,8 @@ use gl::*;
 use cgmath::*;
 
 pub struct Renderer {
+    pub camera: Camera,
+
     line_shader: Shader,
     polygon_ammount: usize,
     immediate_polygons: [Option<Polygon>; 2000],
@@ -10,9 +12,12 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new() -> Self {
+        let camera = Camera::new();
         let line_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
 
         Self {
+            camera,
+
             line_shader,
             polygon_ammount: 0,
             immediate_polygons: [None; 2000],
@@ -30,6 +35,7 @@ impl Renderer {
         // draw polygons
         for i in 0..=self.polygon_ammount {
             if self.immediate_polygons[i].is_some() {
+                self.camera.send_uniforms(&self.line_shader);
                 self.immediate_polygons[i].unwrap().draw(&self.line_shader);
             }
         } 
@@ -39,6 +45,11 @@ impl Renderer {
 const POLYGON_VS: &str = r#"
     #version 330 core
     layout (location = 0) in vec3 aPos;
+
+    // uniform mat4 view;
+    // uniform mat4 proj;
+    // uniform mat4 model;
+
     void main() {
        gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
     }

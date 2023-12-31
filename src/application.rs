@@ -6,13 +6,11 @@ pub struct Application {
     window: PWindow,
     glfw: Glfw,
     // ui 
-    camera: Camera,
     renderer: Renderer,
 }
 
 impl Application {
     pub fn new(window: PWindow, glfw: Glfw) -> Self {
-        let camera = Camera::new();
         let mut renderer = Renderer::new();
 
         for i in 0..1024 {
@@ -29,14 +27,13 @@ impl Application {
         Self {
             window,
             glfw,
-            camera,
             renderer,
         } 
     }
 
     pub fn update(&mut self) {
-        self.camera.update();
-        self.camera.input(&mut self.window, &self.glfw);
+        self.renderer.camera.update();
+        self.renderer.camera.input(&mut self.window, &self.glfw);
     }
 
     pub unsafe fn render(&mut self) {
@@ -53,6 +50,15 @@ impl Application {
     pub fn glfw_mut(&mut self) -> &mut Glfw {
         &mut self.glfw
     }
+
+    pub fn mouse(&mut self, x: f32, y:f32) {
+        self.renderer.camera.mouse_callback(x, y, &self.window);
+    } 
 }
 // fallen was here
 // GOUD too my G
+//
+
+/*
+ * app.renderer.add_polygon( VERTICES: *&Vec<f32>*, COR: *Vector3<f32>* );
+ */

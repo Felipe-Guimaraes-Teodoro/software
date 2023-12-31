@@ -1,4 +1,6 @@
+use crate::cstr;
 
+use crate::sf::shader::Shader;
 use cgmath::*;
 
 use glfw::{self, Action, Key};
@@ -171,30 +173,30 @@ impl Camera {
 
 
     // RENDERING //
-    // pub unsafe fn send_uniforms(&mut self, shader: &Shader) {
-    //     shader.uniform_mat4fv(
-    //         cstr!("view"),
-    //         &self.view
-    //     );
-    //
-    //     shader.uniform_mat4fv(
-    //         cstr!("proj"),
-    //         &self.proj
-    //     );
-    // }
-    //
-    // pub fn set_projection(
-    //     &mut self, 
-    //     projection_type: ProjectionType,
-    // ) {
-    //     match projection_type {
-    //         ProjectionType::Perspective => {
-    //             self.proj = perspective(Deg(70.0), 1.0, 0.1, 10000.0);
-    //         },
-    //         ProjectionType::Orthographic => {
-    //             self.proj = ortho(-1.0, 1.0, -1.0, 1.0, -100.0, 100.0);
-    //         }
-    //     }
-    // }
+    pub unsafe fn send_uniforms(&mut self, shader: &Shader) {
+        shader.uniform_mat4fv(
+            cstr!("view"),
+            &self.view
+        );
+
+        shader.uniform_mat4fv(
+            cstr!("proj"),
+            &self.proj
+        );
+    }
+
+    pub fn set_projection(
+        &mut self, 
+        projection_type: ProjectionType,
+    ) {
+        match projection_type {
+            ProjectionType::Perspective => {
+                self.proj = perspective(Deg(70.0), 1.0, 0.1, 10000.0);
+            },
+            ProjectionType::Orthographic => {
+                self.proj = ortho(-1.0, 1.0, -1.0, 1.0, -100.0, 100.0);
+            }
+        }
+    }
 }
 
