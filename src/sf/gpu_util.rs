@@ -1,48 +1,52 @@
 use gl::{*, types::*};
 use std::{mem, ptr, ffi::c_void};
 
-pub struct Buffer {
-    pub id: u32,
+pub trait Buffer<D> {
+    fn new(data: D) -> Self;
+    fn update(&mut self);
 }
 
-impl Buffer {
-    pub unsafe fn new_vao(vertices: &Vec<f32>) -> Self {
-        let mut vao = 0;
-        
-        GenVertexArrays(1, &mut vao);
+#[derive(Copy,Clone)]
+pub struct RVertexBuffer {
+    pub vao_id: u32,
+    pub vbo_id: u32,
+}
 
-        BindVertexArray(vao);
+impl Buffer<&Vec<f32>> for RVertexBuffer {
+    fn new(data: &Vec<f32>) -> Self {
+        let (mut vbo, mut vao) = (0, 0);
 
-        VertexAttribPointer(
-            0, 
-            3, 
-            FLOAT, 
-            FALSE, 
-            (3 * mem::size_of::<GLfloat>()) as GLsizei, 
-            ptr::null()
-        );
-        EnableVertexAttribArray(0);
-        BindBuffer(ARRAY_BUFFER, 0);
-        BindVertexArray(0);
+        unsafe {
+            GenVertexArrays(1, &mut vao);
+            GenBuffers(1, &mut vbo);
+            BindVertexArray(vao);
+
+            BindBuffer(gl::ARRAY_BUFFER, vbo);
+            BufferData(gl::ARRAY_BUFFER,
+                           (data.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                           &data[0] as *const f32 as *const c_void,
+                           gl::STATIC_DRAW);
+
+            VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * mem::size_of::<GLfloat>() as GLsizei, ptr::null());
+            EnableVertexAttribArray(0);
+
+            BindBuffer(gl::ARRAY_BUFFER, 0);
+
+            BindVertexArray(0);
+        }
 
         Self {
-            id: vao,
+            vao_id: vao,
+            vbo_id: vbo,
         }
     }
 
-    pub unsafe fn update_vao(&mut self, vertices: &Vec<f32>) {
-        BindVertexArray(self.id);
-        BindBuffer(ARRAY_BUFFER, self.id);
-
-        BufferSubData(
-            ARRAY_BUFFER, 
-            0, 
-            (vertices.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
-            vertices.as_ptr() as *const c_void,
-        );
-
-        BindVertexArray(0);
-        BindBuffer(ARRAY_BUFFER, 0);
-    }
+    fn update(&mut self) {}
 }
 
+#[macro_export]
+macro_rules! cstr {
+    ($str: expr) => {
+        &std::ffi::CString::new($str).unwrap()
+    }
+}
