@@ -6,3 +6,5 @@ mod util;
 fn main() {
     event_loop::run();
 }
+
+// add a thread pool to the application
