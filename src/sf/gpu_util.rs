@@ -3,7 +3,7 @@ use std::{mem, ptr, ffi::c_void};
 
 pub trait Buffer<D> {
     fn new(data: D) -> Self;
-    fn update(&mut self);
+    fn update(&mut self, new_verts: D);
 }
 
 #[derive(Copy,Clone)]
@@ -41,7 +41,20 @@ impl Buffer<&Vec<f32>> for RVertexBuffer {
         }
     }
 
-    fn update(&mut self) {}
+    fn update(&mut self, new_verts: &Vec<f32>) {
+        unsafe {
+            BindVertexArray(self.vao_id);
+            BindBuffer(gl::ARRAY_BUFFER, self.vbo_id);
+
+            BufferSubData(gl::ARRAY_BUFFER,
+                          0,
+                          (new_verts.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                          &new_verts[0] as *const f32 as *const c_void);
+
+            BindBuffer(gl::ARRAY_BUFFER, 0);
+            BindVertexArray(0);
+        }
+    }
 }
 
 #[macro_export]

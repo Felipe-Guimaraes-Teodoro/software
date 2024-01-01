@@ -1,6 +1,8 @@
 use glfw::*;
 use gl::*;
-use crate::sf::*;
+use crate::{sf::*, util::Math};
+
+static START: std::sync::Once = std::sync::Once::new();
 
 pub struct Application {
     window: PWindow,
@@ -34,6 +36,17 @@ impl Application {
     pub fn update(&mut self) {
         self.renderer.camera.update();
         self.renderer.camera.input(&mut self.window, &self.glfw);
+
+        // START.call_once(|| {
+            for i in 0..1024 {
+                let new_verts = &vec![
+                    0.5 - i as f32 / 200.0, 0.0, Math::random(-1.0, 1.0),
+                    0.0 - Math::random(-0.03, 0.03), 0.5 + i as f32 / 200.0, Math::random(-1.0, 1.0), 
+                    -0.5, 0.5 + Math::random(-20.0, 20.0), Math::random(-1.0, 1.0),
+                ];
+                self.renderer.update_polygon(i, new_verts);
+            }
+        // });
     }
 
     pub unsafe fn render(&mut self) {
