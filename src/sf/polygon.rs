@@ -6,13 +6,13 @@ pub const POLYGON_VS: &str = r#"
     #version 330 core
     layout (location = 0) in vec3 aPos;
 
-    uniform mat4 view;
-    uniform mat4 proj;
-    uniform mat4 model;
+    // uniform mat4 view;
+    // uniform mat4 proj;
+    // uniform mat4 model;
 
     void main() {
-        gl_Position = proj * view * vec4(aPos, 1.0);
-        // gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+        // gl_Position = proj * view * vec4(aPos, 1.0);
+        gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
     }
 "#;
 
@@ -45,7 +45,7 @@ impl Polygon {
         } 
     }
 
-    pub unsafe fn draw(&mut self, shader: &Shader) {
+    pub unsafe fn draw(&self, shader: &Shader) {
         shader.use_shader();
         shader.uniform_vec3f(cstr!("color"), &self.col);
         BindVertexArray(self.buf.vao_id);

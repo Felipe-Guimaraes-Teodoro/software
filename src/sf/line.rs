@@ -1,9 +1,10 @@
-// Implement like polygon.rs
-// add update method
-struct Line {}
+use crate::{sf::*, cstr};
+use gl::*;
+use cgmath::*;
+
+#[derive(Clone, Copy)]
+pub struct Line {}
 
 impl Line {
-    pub fn new() -> Self {
-        todo!(); 
-    }
+    // USE IMGUI FOR LINE RENDERING 
 }
