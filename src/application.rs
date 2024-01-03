@@ -3,8 +3,6 @@ use gl::*;
 
 use crate::{sf::*, util::Math};
 
-static START: std::sync::Once = std::sync::Once::new();
-
 pub struct Application {
     window: PWindow,
     glfw: Glfw,
@@ -40,7 +38,7 @@ impl Application {
         self.renderer.camera.input(&mut self.window, &self.glfw);
 
         for i in 0..1024 {
-            let new_verts = &vec![
+            let new_verts = vec![
                 0.5 - i as f32 / 200.0, 0.0, Math::random(-1.0, 1.0),
                 0.0 - Math::random(-0.03, 0.03), 0.5 + i as f32 / 200.0, Math::random(-1.0, 1.0), 
                 -0.5, 0.5 + Math::random(-20.0, 20.0), Math::random(-1.0, 1.0),

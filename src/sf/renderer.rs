@@ -1,16 +1,14 @@
-use crate::{sf::*, cstr};
-use gl::*;
-use cgmath::*;
+use crate::sf::*;
 
 pub struct Renderer {
     pub camera: Camera,
 
     line_shader: Shader,
-    polygon_ammount: usize,
-    polygons: [Option<Polygon>; 2000], // currently not actually immediate lol
+    pub polygon_ammount: usize,
+    pub polygons: [Option<Polygon>; 2000], // currently not actually immediate lol
 
-    line_ammount: usize,
-    lines: [Option<Line>; 2000],
+    pub line_ammount: usize,
+    pub lines: [Option<Line>; 2000],
 }
 
 impl Renderer {
@@ -26,19 +24,6 @@ impl Renderer {
             line_ammount: 0,
             polygons: [None; 2000],
             lines: [None; 2000],
-        }
-    }
-
-    pub fn add_polygon(&mut self, verts: &Vec<f32>, color: Vector3<f32>) {
-        let poly = Polygon::new(verts, color);
-
-        self.polygons[self.polygon_ammount] = Some(poly);
-        self.polygon_ammount += 1;
-    }
-
-    pub fn update_polygon(&self, idx: usize, new_verts: &Vec<f32>) {
-        if let Some(mut polygon) = self.polygons[idx] {
-            polygon.update(new_verts);
         }
     }
 

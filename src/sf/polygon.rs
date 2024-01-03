@@ -53,12 +53,29 @@ impl Polygon {
         BindVertexArray(0);
     }
 
-    pub fn push(v: &[f32; 3]) { // pushes a vertex to the tip of the polygon
-        dbg!(v);
-        panic!("Polygon::push() is not yet implemented: Polygon must own it's vertices");
-    }
+    // pub fn push(v: &[f32; 3]) { // pushes a vertex to the tip of the polygon
+    //     dbg!(v);
+    //     panic!("Polygon::push() is not yet implemented: Polygon must own it's vertices");
+    // }
 
     pub fn update(&mut self, new_verts: &Vec<f32>) {
         self.buf.update(new_verts);
+    }
+
+    // pub fn cleanup(&mut self) { self.buf.clear(); }
+}
+
+impl Renderer {
+    pub fn add_polygon(&mut self, verts: &Vec<f32>, color: Vector3<f32>) {
+        let poly = Polygon::new(verts, color);
+
+        self.polygons[self.polygon_ammount] = Some(poly);
+        self.polygon_ammount += 1;
+    }
+
+    pub fn update_polygon(&self, idx: usize, new_verts: Vec<f32>) {
+        if let Some(mut polygon) = self.polygons[idx] {
+            polygon.update(&new_verts);
+        }
     }
 }

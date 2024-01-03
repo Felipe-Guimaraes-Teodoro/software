@@ -4,6 +4,7 @@ use std::{mem, ptr, ffi::c_void};
 pub trait Buffer<D> {
     fn new(data: D) -> Self;
     fn update(&mut self, new_verts: D);
+    fn clear(&mut self);
 }
 
 #[derive(Copy,Clone)]
@@ -53,6 +54,16 @@ impl Buffer<&Vec<f32>> for RVertexBuffer {
 
             BindBuffer(gl::ARRAY_BUFFER, 0);
             BindVertexArray(0);
+        }
+    }
+
+    fn clear(&mut self) {
+        unsafe {
+            DeleteBuffers(1, &self.vbo_id);
+            DeleteVertexArrays(1, &self.vao_id);
+
+            self.vbo_id = 0;
+            self.vao_id = 0;
         }
     }
 }
