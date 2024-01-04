@@ -14,6 +14,7 @@ pub fn run() {
 
     window.set_key_polling(true);
     window.set_cursor_pos_polling(true);
+    window.set_mouse_button_polling(true);
     window.set_framebuffer_size_polling(true);
     window.make_current();
 
@@ -24,6 +25,7 @@ pub fn run() {
 
     while !app.window_mut().should_close() {
         app.update();
+        app.ui();
         unsafe {
             app.render();
         }
@@ -51,10 +53,23 @@ fn handle_window_event(app: &mut Application, event: glfw::WindowEvent) {
             }
         },
 
+        WindowEvent::MouseButton(button, action, _) => {
+            app.ui.on_mouse_click(button, action);
+        },
+        WindowEvent::Scroll(x, y) => {
+            app.ui.on_mouse_scroll(x as f32, y as f32);
+        },
         WindowEvent::CursorPos(x, y) => {
             let (x, y) = (x as f32, y as f32);
             app.mouse(x, y);
-        }
+            app.ui.on_mouse_move(x, y);
+        },
+
+        WindowEvent::FramebufferSize(width, height) => {
+            unsafe {
+                gl::Viewport(0, 0, width, height);
+            }
+        },
 
         _ => {},
     }

@@ -1,18 +1,20 @@
 use glfw::*;
 use gl::*;
 
-use crate::{sf::*, util::Math};
+use crate::{sf::*, ui::Imgui, util::Math};
 
 pub struct Application {
     window: PWindow,
     glfw: Glfw,
-    // ui 
+    pub ui: Imgui,
     renderer: Renderer,
 }
 
 impl Application {
-    pub fn new(window: PWindow, glfw: Glfw) -> Self {
+    pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
         let mut renderer = Renderer::new();
+        let ctx = imgui::Context::create();
+        let ui = Imgui::new(ctx, &mut window);
         // let mut ray_caster = RayCaster::new(&renderer); // abstracao para os raios
 
         for i in 0..1024 {
@@ -29,9 +31,16 @@ impl Application {
         Self {
             window,
             glfw,
+            ui,
             renderer,
         } 
     }
+
+    pub fn ui(&mut self) {
+        let frame = self.ui.frame(&mut self.window);
+
+        frame.text("Hello, world!");
+    } 
 
     pub fn update(&mut self) {
         self.renderer.camera.update();
@@ -52,6 +61,7 @@ impl Application {
         Clear(COLOR_BUFFER_BIT);
 
         self.renderer.draw(); 
+        self.ui.draw();
     }
 
     pub fn window_mut(&mut self) -> &mut Window {
