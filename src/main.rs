@@ -5,8 +5,8 @@ mod event_loop;
 mod util;
 mod worker;
 mod physics;
+mod environment;
 
-use crate::util::Math;
 use threadpool::ThreadPool;
 
 

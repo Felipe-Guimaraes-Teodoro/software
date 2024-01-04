@@ -8,6 +8,9 @@ pub struct RayCaster {
     // raycaster should be able to read data from the world
     // maybe make it so raycaster is a member of world, and have
     // access to it
+    //
+    // other suggestion is to make a reference of world be a member
+    // of raycaster 
 }
 
 impl RayCaster {

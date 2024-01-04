@@ -1,18 +1,25 @@
 use glfw::*;
 use gl::*;
 
+use std::sync::{Arc, Mutex};
+
 use crate::{sf::*, ui::Imgui, util::Math};
+use crate::environment::World;
 
 pub struct Application {
     window: PWindow,
     glfw: Glfw,
     pub ui: Imgui,
     renderer: Renderer,
+    world: Arc<Mutex<World>>, 
 }
 
 impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
-        let mut renderer = Renderer::new();
+        let world = Arc::new(Mutex::new(World::new()));
+        world.lock().unwrap().push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
+        let mut renderer = Renderer::new(Arc::clone(&world));
+
         let ctx = imgui::Context::create();
         let ui = Imgui::new(ctx, &mut window);
         // let mut ray_caster = RayCaster::new(&renderer); // abstracao para os raios
@@ -33,6 +40,7 @@ impl Application {
             glfw,
             ui,
             renderer,
+            world,
         } 
     }
 

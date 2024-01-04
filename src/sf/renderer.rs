@@ -1,29 +1,41 @@
 use crate::sf::*;
+use crate::environment::*;
+
+use std::sync::{Arc, Mutex};
 
 pub struct Renderer {
     pub camera: Camera,
 
     line_shader: Shader,
+    pub mirror_shader: Shader, 
+
     pub polygon_ammount: usize,
     pub polygons: [Option<Polygon>; 2000], // currently not actually immediate lol
 
     pub line_ammount: usize,
     pub lines: [Option<Line>; 2000],
+
+    pub world_handle: Arc<Mutex<World>>,
 }
 
 impl Renderer {
-    pub fn new() -> Self {
+    pub fn new(world_handle: Arc<Mutex<World>>) -> Renderer {
         let camera = Camera::new();
         let line_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
+        let mirror_shader = Shader::new_pipeline(MIRROR_VS, MIRROR_FS);
 
         Self {
             camera,
 
             line_shader,
+            mirror_shader,
+
             polygon_ammount: 0,
             line_ammount: 0,
             polygons: [None; 2000],
             lines: [None; 2000],
+
+            world_handle,
         }
     }
 
@@ -37,5 +49,7 @@ impl Renderer {
             }
         }
 
+        // draw world 
+        self.draw_world(); // impl @ src/environment/world.rs 
     }
 }
