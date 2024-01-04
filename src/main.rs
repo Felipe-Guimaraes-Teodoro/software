@@ -4,6 +4,7 @@ mod application;
 mod event_loop;
 mod util;
 mod worker;
+mod physics;
 
 use crate::util::Math;
 use threadpool::ThreadPool;
