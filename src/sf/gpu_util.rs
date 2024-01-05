@@ -20,6 +20,14 @@ pub struct RVertexBufferIndexed {
     pub ebo_id: u32,
 }
 
+#[derive(Copy,Clone,Debug)]
+pub struct RVertexBufferTextured {
+    pub vao_id:     u32,
+    pub vbo_id:     u32,
+    pub ebo_id:     u32,
+    pub texture_id: u32,
+}
+
 impl Buffer<&Vec<f32>> for RVertexBuffer {
     fn new(data: &Vec<f32>) -> Self {
         let (mut vbo, mut vao) = (0, 0);
@@ -103,7 +111,7 @@ impl Buffer<(&Vec<f32>, &Vec<i32>)> for RVertexBufferIndexed {
             VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * mem::size_of::<GLfloat>() as GLsizei, ptr::null());
             EnableVertexAttribArray(0);
 
-            BindBuffer(gl::ARRAY_BUFFER, 0);
+            // BindBuffer(gl::ARRAY_BUFFER, 0);
 
             BindVertexArray(0);
         }
@@ -149,6 +157,20 @@ impl Buffer<(&Vec<f32>, &Vec<i32>)> for RVertexBufferIndexed {
         }
     }
 }
+
+impl Buffer<(&Vec<f32>, &Vec<i32>, &[u32])> for RVertexBufferTextured {
+    fn new(data: (&Vec<f32>, &Vec<i32>, &[u32])) -> Self {
+        todo!()
+    }
+
+    fn update(&mut self, new_verts: (&Vec<f32>, &Vec<i32>, &[u32])) {
+        todo!();
+    }
+
+    fn clear(&mut self) {
+        todo!();
+    }
+} 
 
 #[macro_export]
 macro_rules! cstr {
