@@ -1,4 +1,4 @@
-use crate::sf::*;
+use crate::{sf::*, cstr};
 
 use cgmath::*;
 use gl::*;
@@ -10,10 +10,11 @@ pub const MIRROR_VS: &str = r#"
     // uniform mat4 view;
     // uniform mat4 proj;
     // uniform mat4 model;
+    uniform vec3 pos;
 
     void main() {
         // gl_Position = proj * view * vec4(aPos, 1.0);
-        gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+        gl_Position = vec4(aPos + pos, 1.0);
     }
 "#;
 
@@ -60,10 +61,11 @@ impl Mirror {
 
     pub unsafe fn draw(&self, shader: &Shader) {
         shader.use_shader();
+        shader.uniform_vec3f(cstr!("pos"), &self.pos);
+        shader.uniform_vec3f(cstr!("color"), &vec3(1.0, 0.0, 1.0));
         BindVertexArray(self.buf.vao_id);
         DrawArrays(TRIANGLES, 0, 4);
         BindVertexArray(0);
     }
 }
-
 

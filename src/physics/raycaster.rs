@@ -1,9 +1,3 @@
-enum CollisionType {
-    Mirror,
-    Void,
-    Diffuse,
-}
-
 pub struct RayCaster {
     // raycaster should be able to read data from the world
     // maybe make it so raycaster is a member of world, and have
@@ -16,7 +10,6 @@ pub struct RayCaster {
 impl RayCaster {
     pub fn cast(start_pos: (f32, f32), angle: f32, length: f32) {
         // direction components
-
         let (ray_dir_x, ray_dir_y) = (angle.cos(), angle.sin());
 
         let end_x = start_pos.0 + length * ray_dir_x;
@@ -46,3 +39,10 @@ impl RayCaster {
          */
     }
 }
+
+enum CollisionType {
+    Mirror,
+    Void,
+    Diffuse,
+}
+
