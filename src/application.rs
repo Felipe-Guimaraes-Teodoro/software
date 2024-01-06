@@ -12,6 +12,8 @@ pub struct Application {
     pub ui: Imgui,
     renderer: Renderer,
     world: Arc<Mutex<World>>, 
+
+    slider_val: f32,
 }
 
 impl Application {
@@ -41,11 +43,15 @@ impl Application {
             ui,
             renderer,
             world,
+
+            slider_val: 0.0,
         } 
     }
 
     pub fn ui(&mut self) {
         let frame = self.ui.frame(&mut self.window);
+
+        let slider = frame.slider("slider", 0.0, 1.0, &mut self.slider_val);
 
         frame.text("Hello, world!");
     } 
@@ -62,6 +68,12 @@ impl Application {
             ];
             self.renderer.update_polygon(i, new_verts);
         }
+
+        let world_handle = Arc::clone(&self.world);
+        let mirrors = world_handle.lock().unwrap().mirrors;
+        mirrors[0].unwrap().angle = self.slider_val;
+
+        self.renderer.world_handle = Arc::clone(&world_handle);
     }
 
     pub unsafe fn render(&mut self) {
