@@ -1,7 +1,7 @@
 use crate::sf::*;
 use crate::environment::*;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 pub struct Renderer {
     pub camera: Camera,
@@ -15,11 +15,11 @@ pub struct Renderer {
     pub line_ammount: usize,
     pub lines: [Option<Line>; 2000],
 
-    pub world_handle: Arc<Mutex<World>>,
+    pub world_handle: Arc<RwLock<World>>,
 }
 
 impl Renderer {
-    pub fn new(world_handle: Arc<Mutex<World>>) -> Renderer {
+    pub fn new(world_handle: Arc<RwLock<World>>) -> Renderer {
         let camera = Camera::new();
         let line_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
         let mirror_shader = Shader::new_pipeline(MIRROR_VS, MIRROR_FS);
@@ -50,6 +50,6 @@ impl Renderer {
         }
 
         // draw world 
-        self.draw_world(); // impl @ src/environment/world.rs 
+        Self::draw_world(self.world_handle); // impl @ src/environment/world.rs 
     }
 }

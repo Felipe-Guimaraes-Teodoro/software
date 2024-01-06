@@ -1,7 +1,7 @@
 use glfw::*;
 use gl::*;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 
 use crate::{sf::*, ui::Imgui, util::Math};
 use crate::environment::World;
@@ -11,15 +11,15 @@ pub struct Application {
     glfw: Glfw,
     pub ui: Imgui,
     renderer: Renderer,
-    world: Arc<Mutex<World>>, 
+    world: Arc<RwLock<World>>, 
 
     slider_val: f32,
 }
 
 impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
-        let world = Arc::new(Mutex::new(World::new()));
-        world.lock().unwrap().push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
+        let world = Arc::new(RwLock::new(World::new()));
+        world.write().unwrap().push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
         let mut renderer = Renderer::new(Arc::clone(&world));
 
         let ctx = imgui::Context::create();
@@ -69,11 +69,12 @@ impl Application {
             self.renderer.update_polygon(i, new_verts);
         }
 
-        let world_handle = Arc::clone(&self.world);
-        let mirrors = world_handle.lock().unwrap().mirrors;
-        mirrors[0].unwrap().angle = self.slider_val;
+        let world = Arc::clone(&self.world);
+        let world = world.write().unwrap();
 
-        self.renderer.world_handle = Arc::clone(&world_handle);
+        world.mirrors[0]
+            .expect("could not get mirror")
+            .update(cgmath::vec3(0.5, 0.7, 0.0), self.slider_val);
     }
 
     pub unsafe fn render(&mut self) {

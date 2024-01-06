@@ -67,7 +67,7 @@ impl Mirror {
         }
     }
 
-    pub unsafe fn draw(&mut self, shader: &Shader) {
+    pub unsafe fn draw(&self, shader: &Shader) {
         shader.use_shader();
         println!("{:?}", self.angle);
         shader.uniform_vec3f(cstr!("pos"), &self.pos);
@@ -76,6 +76,11 @@ impl Mirror {
         BindVertexArray(self.buf.vao_id);
         DrawElements(TRIANGLES, 6, UNSIGNED_INT, std::ptr::null());
         BindVertexArray(0);
+    }
+
+    pub fn update(&mut self, pos: Vector3<f32>, angle: f32) {
+        self.pos = pos;
+        self.angle = angle;
     }
 
     // pub fn cleanup(&mut self) { self.buf.clear(); }
