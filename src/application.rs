@@ -83,6 +83,10 @@ impl Application {
 
         self.renderer.draw(); 
         self.ui.draw();
+
+        /*IDEA: */  
+        // self.renderer.render_world(&self.world);
+        // + make it so that renderer doesn't own world
     }
 
     pub fn window_mut(&mut self) -> &mut Window {
