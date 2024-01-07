@@ -69,7 +69,6 @@ impl Mirror {
 
     pub unsafe fn draw(&self, shader: &Shader) {
         shader.use_shader();
-        println!("{:?}", self.angle);
         shader.uniform_vec3f(cstr!("pos"), &self.pos);
         shader.uniform_1f(cstr!("angle"), self.angle);
         shader.uniform_vec3f(cstr!("color"), &vec3(0.51, 0.55, 0.8));
@@ -81,6 +80,10 @@ impl Mirror {
     pub fn update(&mut self, pos: Vector3<f32>, angle: f32) {
         self.pos = pos;
         self.angle = angle;
+    }
+
+    pub fn in_bounds(&self, x: f32, y: f32) -> bool {
+         x >= 0.25 && x <= 0.25 && y >= -1.0 && y <= 1.0
     }
 
     // pub fn cleanup(&mut self) { self.buf.clear(); }

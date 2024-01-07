@@ -14,12 +14,10 @@ pub struct Renderer {
 
     pub line_ammount: usize,
     pub lines: [Option<Line>; 2000],
-
-    pub world_handle: Arc<RwLock<World>>,
 }
 
 impl Renderer {
-    pub fn new(world_handle: Arc<RwLock<World>>) -> Renderer {
+    pub fn new() -> Renderer {
         let camera = Camera::new();
         let line_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
         let mirror_shader = Shader::new_pipeline(MIRROR_VS, MIRROR_FS);
@@ -34,8 +32,6 @@ impl Renderer {
             line_ammount: 0,
             polygons: [None; 2000],
             lines: [None; 2000],
-
-            world_handle,
         }
     }
 
@@ -48,8 +44,5 @@ impl Renderer {
                 polygon.draw(&self.line_shader);
             }
         }
-
-        // draw world 
-        Self::draw_world(self.world_handle); // impl @ src/environment/world.rs 
     }
 }

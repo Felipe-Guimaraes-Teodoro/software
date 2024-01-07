@@ -1,5 +1,6 @@
 use glfw::*;
 use gl::*;
+use crate::physics::RayCaster;
 
 use std::sync::{Arc, RwLock};
 
@@ -11,31 +12,22 @@ pub struct Application {
     glfw: Glfw,
     pub ui: Imgui,
     renderer: Renderer,
-    world: Arc<RwLock<World>>, 
+    world: World,
+    ray_caster: RayCaster,
 
     slider_val: f32,
 }
 
 impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
-        let world = Arc::new(RwLock::new(World::new()));
-        world.write().unwrap().push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
-        let mut renderer = Renderer::new(Arc::clone(&world));
+        let mut world = World::new();
+        let ray_caster = RayCaster::new();
+        world.push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
+
+        let renderer = Renderer::new();
 
         let ctx = imgui::Context::create();
         let ui = Imgui::new(ctx, &mut window);
-        // let mut ray_caster = RayCaster::new(&renderer); // abstracao para os raios
-
-        for i in 0..1024 {
-            renderer.add_polygon(
-                &vec![
-                    0.5 - i as f32 / 200.0, 0.0, 0.0,
-                    0.0, 0.5 + i as f32 / 200.0, 0.0,
-                    -0.5, 0.5, 0.0
-                ],
-                cgmath::vec3(i as f32 / 1024.0, i as f32 / 1024.0, 1.0),
-            );
-        }
 
         Self {
             window,
@@ -43,6 +35,7 @@ impl Application {
             ui,
             renderer,
             world,
+            ray_caster,
 
             slider_val: 0.0,
         } 
@@ -51,30 +44,26 @@ impl Application {
     pub fn ui(&mut self) {
         let frame = self.ui.frame(&mut self.window);
 
-        let slider = frame.slider("slider", 0.0, 1.0, &mut self.slider_val);
+        for i in -64..64 {
+            let ofs = i as f32 / 1024.0;
+            self.ray_caster.cast((0.0, 0.5 + ofs), 0.0, 0.5, &frame.get_foreground_draw_list(), 0);
+        }
 
-        frame.text("Hello, world!");
+        let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
     } 
+
+    pub fn fdl(&mut self) -> imgui::DrawListMut {
+        let frame = self.ui.frame(&mut self.window);
+        frame.get_foreground_draw_list()
+    }
 
     pub fn update(&mut self) {
         self.renderer.camera.update();
         self.renderer.camera.input(&mut self.window, &self.glfw);
 
-        for i in 0..1024 {
-            let new_verts = vec![
-                0.5 - i as f32 / 200.0, 0.0, Math::random(-1.0, 1.0),
-                0.0 - Math::random(-0.03, 0.03), 0.5 + i as f32 / 200.0, Math::random(-1.0, 1.0), 
-                -0.5, 0.5 + Math::random(-20.0, 20.0), Math::random(-1.0, 1.0),
-            ];
-            self.renderer.update_polygon(i, new_verts);
-        }
+        self.ray_caster.update(&self.world.mirrors);
 
-        let world = Arc::clone(&self.world);
-        let world = world.write().unwrap();
-
-        world.mirrors[0]
-            .expect("could not get mirror")
-            .update(cgmath::vec3(0.5, 0.7, 0.0), self.slider_val);
+        self.world.mirrors[0].update(cgmath::vec3(0.0, 0.0, 0.0), self.slider_val * 3.14);
     }
 
     pub unsafe fn render(&mut self) {
@@ -82,11 +71,8 @@ impl Application {
         Clear(COLOR_BUFFER_BIT);
 
         self.renderer.draw(); 
+        self.renderer.draw_world(&self.world);
         self.ui.draw();
-
-        /*IDEA: */  
-        // self.renderer.render_world(&self.world);
-        // + make it so that renderer doesn't own world
     }
 
     pub fn window_mut(&mut self) -> &mut Window {
