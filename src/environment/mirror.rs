@@ -1,4 +1,4 @@
-use crate::{sf::*, cstr};
+use crate::{sf::*, cstr, util::Geometry};
 
 use cgmath::*;
 use gl::*;
@@ -83,7 +83,16 @@ impl Mirror {
     }
 
     pub fn in_bounds(&self, x: f32, y: f32) -> bool {
-         x >= 0.25 && x <= 0.25 && y >= -1.0 && y <= 1.0
+        let mut verts = vec![
+            0.25 + self.pos.x, 0.5 + self.pos.y, // top right
+            0.25 + self.pos.x, -0.5 + self.pos.y, // bottom right
+            -0.25 + self.pos.x, -0.5 + self.pos.y, // bottom left 
+            -0.25 + self.pos.x, 0.5 + self.pos.y, // top left 
+        ];
+
+        let new_verts = Geometry::rotate_polygon2d(&mut verts, self.angle);
+
+        Geometry::in_point_inside_polygon2d(x, y, new_verts)
     }
 
     // pub fn cleanup(&mut self) { self.buf.clear(); }

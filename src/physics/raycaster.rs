@@ -34,14 +34,7 @@ impl RayCaster {
 
         let c = self.check_collision(start_pos, end_pos);
     
-        let line = fdl.add_line(
-            [start_pos.0 * 800.0, start_pos.1 * 800.0], 
-            [end_x * 800.0, end_y * 800.0], 
-            [Math::random(0.5, 1.0), Math::random(0.5, 1.0), Math::random(0.5, 1.0), 1.0]
-        ).thickness(1.0);
-
-        line.build();
-        
+                
         
         match c.0 {
             CollisionType::Mirror => {
@@ -50,16 +43,22 @@ impl RayCaster {
                 let y = c.2.1;
 
                 if d < 20 {
+                    let line = fdl.add_line(
+                        [start_pos.0 * 800.0, start_pos.1 * 800.0], 
+                        [x * 800.0, y * 800.0], 
+                        [Math::random(0.5, 1.0), Math::random(0.5, 1.0), Math::random(0.5, 1.0), 1.0]
+                    ).thickness(1.0);
+
+                    line.build();
+
                     self.cast((x + 0.125, y), -mirror.angle + 3.1415, 2.0, fdl, d+1);
                 }
             }
 
             CollisionType::Diffuse => {
-
             }
 
             CollisionType::Void => {
-                self.depth = 0;
             }
         }
         
