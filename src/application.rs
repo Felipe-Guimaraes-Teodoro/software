@@ -24,10 +24,19 @@ impl Application {
         let ray_caster = RayCaster::new();
         world.push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
 
-        let renderer = Renderer::new();
+        let mut renderer = Renderer::new();
 
         let ctx = imgui::Context::create();
         let ui = Imgui::new(ctx, &mut window);
+
+        renderer.add_polygon(
+            &vec![
+                0.5, 0.0, 0.0,
+                0.0, 0.5, 0.0,
+                -0.5, 0.5, 0.0,
+            ],
+            cgmath::vec3(0.0, 0.0, 0.0),
+        );
 
         Self {
             window,
@@ -44,12 +53,16 @@ impl Application {
     pub fn ui(&mut self) {
         let frame = self.ui.frame(&mut self.window);
 
+        // let ofs = 0.0;
+
         for i in -64..64 {
             let ofs = i as f32 / 1024.0;
             self.ray_caster.cast((0.0, 0.5 + ofs), 0.0, 0.5, &frame.get_foreground_draw_list(), 0);
         }
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
+
+        let m_pos = frame.io().mouse_pos;
     } 
 
     pub fn fdl(&mut self) -> imgui::DrawListMut {
@@ -71,7 +84,7 @@ impl Application {
         Clear(COLOR_BUFFER_BIT);
 
         self.renderer.draw(); 
-        self.renderer.draw_world(&self.world);
+        // self.renderer.draw_world(&self.world);
         self.ui.draw();
     }
 

@@ -90,7 +90,7 @@ impl Mirror {
             -0.25 + self.pos.x, 0.5 + self.pos.y, // top left 
         ];
 
-        let new_verts = Geometry::rotate_polygon2d(&mut verts, self.angle);
+        let new_verts = Geometry::rotate_polygon2d(&mut verts, -self.angle + 3.1415);
 
         Geometry::in_point_inside_polygon2d(x, y, new_verts)
     }
