@@ -16,6 +16,7 @@ pub struct SecondOrderDynamics { // make it so that input x yields in a smooth, 
     k3: f32,
 }
 
+#[derive(Debug, Copy, Clone)]
 struct Point {
     x: f32, y: f32,
 }
@@ -39,48 +40,51 @@ impl Geometry {
         let points: Vec<Point> = polygon
             .chunks(2)
             .map(|points| Point {
-                x: points[0] + 400.0,
-                y: points[1] + 400.0,
+                y: points[0] + 400.0,
+                x: points[1] + 400.0,
             })
             .collect();
 
-        let p1 = &points[0];
+        let mut j = points.len() - 1;
 
         for i in 0..points.len() {
-            let p2 = &points[i % points.len()]; 
+            let p1 = &points[i];
+            let p2 = &points[j];
 
-            if y > f32::min(p1.y, p2.y) {
-                if y <= f32::max(p1.y, p2.y) {
-                    if x <= f32::max(p1.x, p2.x) {
-                        let x_intersection
-                            = (y - p1.y) * (p2.x - p1.x)
-                                / (p2.y - p1.y)
-                            + p1.x;
-
-                        if p1.x == p2.x || x <= x_intersection {
-                            inside = !inside;
-                        }
-                    }
-                }
+            if (p1.y > y) != (p2.y > y)
+                && x < p1.x + (p2.x - p1.x) * (y - p1.y) / (p2.y - p1.y)
+            {
+                inside = !inside;
             }
+
+            j = i;
         }
+        
 
         return inside;
     }
 
     pub fn rotate_polygon2d(polygon: &mut Vec<f32>, angle: f32) -> &Vec<f32> {
+        let angle = angle + 1.57079633;
+
+        let points: Vec<Point> = polygon
+            .chunks(2)
+            .map(|points| Point {
+                x: points[0], // + pivot_x
+                y: points[1], // + pivot_y
+            })
+            .collect();
+
+        let cos_angle = angle.cos();
+        let sin_angle = angle.sin();
+
         // Iterate over each pair of (x, y) coordinates and rotate them
-        for i in (0..polygon.len()).step_by(2) {
-            let x = polygon[i];
-            let y = polygon[i + 1];
+        for i in 0..points.len() {
+            let rot_x = points[i].x * cos_angle - points[i].y * sin_angle;
+            let rot_y = points[i].x * sin_angle + points[i].y * cos_angle;
 
-            // Rotate the point using the 2D rotation matrix
-            let new_x = x * angle.cos() + y * -angle.sin();
-            let new_y = x * angle.sin() + y * angle.cos();
-
-            // Update the polygon with the rotated coordinates
-            polygon[i] = new_x;
-            polygon[i + 1] = new_y;
+            polygon[i * 2] = rot_x; // - pivot_x ;
+            polygon[i * 2 + 1] = rot_y; // - pivot_y;
         }
 
         polygon
