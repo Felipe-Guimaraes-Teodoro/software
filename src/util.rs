@@ -1,8 +1,20 @@
 use rand::Rng;
 use cgmath::Vector3;
 
+use std::f32::consts::PI;
+
 pub struct Math {}
 pub struct Geometry {}
+pub struct SecondOrderDynamics { // make it so that input x yields in a smooth, natural output y
+    xp: Vector3<f32>, // previous inputs
+    y: Vector3<f32>, 
+    yd: Vector3<f32>,
+
+    //constants
+    k1: f32,
+    k2: f32, 
+    k3: f32,
+}
 
 struct Point {
     x: f32, y: f32,
@@ -27,8 +39,8 @@ impl Geometry {
         let points: Vec<Point> = polygon
             .chunks(2)
             .map(|points| Point {
-                x: points[0],
-                y: points[1],
+                x: points[0] + 400.0,
+                y: points[1] + 400.0,
             })
             .collect();
 
@@ -72,5 +84,39 @@ impl Geometry {
         }
 
         polygon
+    }
+}
+
+impl SecondOrderDynamics {
+    pub fn new(f: f32, z: f32, r: f32, x0: Vector3<f32>) -> Self {
+        let k1 = z / (PI * f);
+        let k2 = 1.0 / ((2.0 * PI * f) * (2.0 * PI * f));
+        let k3 = r * z / (2.0 * PI * f);
+        
+        let xp = x0;
+        let y = x0;
+        let yd = cgmath::vec3(0.0, 0.0, 0.0);
+
+        Self {
+            k1,
+            k2,
+            k3,
+
+            xp,
+            y,
+            yd,
+        }
+    }
+
+    pub fn update(&mut self, timestep: f32, x: Vector3<f32>, xd: Vector3<f32>) -> Vector3<f32> {
+        // if xd == None {
+        //     xd = (x - self.xp) / timestep;
+        //     self.xp = x;
+        // } 
+
+        self.y = self.y + timestep * self.yd;
+        self.yd = self.yd + timestep * (x + self.k3*xd - self.y - self.k1*self.yd) / self.k2;
+
+        self.y
     }
 }
