@@ -33,12 +33,11 @@ impl RayCaster {
 
 
         let c = self.check_collision(start_pos, end_pos);
-    
                 
         let line = fdl.add_line(
-            [start_pos.0 * 800.0, start_pos.1 * 800.0], 
-            [end_pos.0 * 800.0, end_pos.1 * 800.0], 
-            [Math::random(0.5, 1.0), Math::random(0.5, 1.0), Math::random(0.5, 1.0), 1.0]
+            [start_pos.0, start_pos.1], 
+            [end_pos.0, end_pos.1], 
+            [Math::random(0.7, 1.0), Math::random(0.7, 1.0), Math::random(0.7, 1.0), 1.0]
         ).thickness(1.0);
         line.build();
         
@@ -48,8 +47,8 @@ impl RayCaster {
                 let x = c.2.0;
                 let y = c.2.1;
 
-                if d < 2{
-                    self.cast((x + 0.125, y), -mirror.angle + 3.1415, 2.0, fdl, d+1);
+                if d < 20 {
+                    self.cast((x, y), -mirror.angle + 3.1415, 400.0, fdl, d+1);
                 }
             }
 
@@ -105,6 +104,7 @@ impl RayCaster {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 pub enum CollisionType {
     Mirror,
     Void,

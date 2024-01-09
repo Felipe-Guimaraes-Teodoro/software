@@ -2,9 +2,7 @@ use glfw::*;
 use gl::*;
 use crate::physics::RayCaster;
 
-use std::sync::{Arc, RwLock};
-
-use crate::{sf::*, ui::Imgui, util::Math};
+use crate::{sf::*, ui::Imgui};
 use crate::environment::World;
 
 pub struct Application {
@@ -53,14 +51,12 @@ impl Application {
     pub fn ui(&mut self) {
         let frame = self.ui.frame(&mut self.window);
 
-        let ofs = 0.0;
-
         let fdl = frame.get_foreground_draw_list();
 
-        // for i in -64..64 {
-            // let ofs = i as f32 / 1024.0;
-            self.ray_caster.cast((0.0, 0.5 + ofs), 0.0, 0.5, &fdl, 0);
-        // }
+        for i in -64..64 {
+            let ofs = i as f32;
+            self.ray_caster.cast((0.0, 400.0 + ofs), 0.0, 400.0, &fdl, 0);
+        }
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
 
@@ -77,6 +73,8 @@ impl Application {
                 &n_vec,
             )
         };
+
+        frame.text(format!("{:?}", my_bool(m_pos[0], m_pos[1])));
             
 
         for i in 0..80 {
@@ -89,11 +87,6 @@ impl Application {
             }
         }
     } 
-
-    pub fn fdl(&mut self) -> imgui::DrawListMut {
-        let frame = self.ui.frame(&mut self.window);
-        frame.get_foreground_draw_list()
-    }
 
     pub fn update(&mut self) {
         self.renderer.camera.update();
@@ -109,7 +102,7 @@ impl Application {
         Clear(COLOR_BUFFER_BIT);
 
         self.renderer.draw(); 
-        // self.renderer.draw_world(&self.world);
+        self.renderer.draw_world(&self.world);
         self.ui.draw();
     }
 

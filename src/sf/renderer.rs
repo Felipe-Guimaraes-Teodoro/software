@@ -3,6 +3,10 @@ use crate::environment::*;
 
 use std::sync::{Arc, RwLock};
 
+pub trait Drawable {
+    unsafe fn draw(&self, shader: &Shader);
+}
+
 pub struct Renderer {
     pub camera: Camera,
 
@@ -43,6 +47,12 @@ impl Renderer {
             if let Some(polygon) = self.polygons[polygon] {
                 polygon.draw(&self.line_shader);
             }
+        }
+    }
+
+    pub fn r_draw<D: Drawable>(obj: D, shader: &Shader) {
+        unsafe {
+            obj.draw(&shader);
         }
     }
 }

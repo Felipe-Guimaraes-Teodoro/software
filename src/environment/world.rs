@@ -1,4 +1,5 @@
 use crate::{environment::*, sf::Renderer};
+use crate::sf::Drawable;
 
 use cgmath::Vector3;
 use std::sync::{Arc, RwLock};
