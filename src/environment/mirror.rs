@@ -1,7 +1,14 @@
 use crate::{sf::*, cstr, util::Geometry};
+use std::sync::{Arc, Mutex};
 
 use cgmath::*;
 use gl::*;
+
+use once_cell::sync::Lazy;
+
+static GLOBAL_MIRROR_ID: Lazy<Arc<Mutex<u32>>> = Lazy::new(|| { 
+        Arc::new(Mutex::new(0))
+    });
 
 pub const MIRROR_VS: &str = r#"
     #version 330 core
@@ -42,15 +49,17 @@ pub struct Mirror {
     buf: RVertexBufferIndexed,
     pub pos: Vector3<f32>,
     pub angle: f32,
+    pub just_reflected: bool,
+    id: u32,
 }
 
 impl Mirror {
     pub fn new(pos: Vector3<f32>, angle: f32,) -> Self {
         let verts = vec![
-            0.25, 0.5, 0.0, // top right
-            0.25, -0.5, 0.0, // bottom right
-            -0.25, -0.5, 0.0, // bottom left 
-            -0.25, 0.5, 0.0, // top left 
+            0.01, 0.5, 0.0, // top right
+            0.01, -0.5, 0.0, // bottom right
+            -0.01, -0.5, 0.0, // bottom left 
+            -0.01, 0.5, 0.0, // top left 
         ];
 
         let indices = vec![
@@ -60,10 +69,15 @@ impl Mirror {
 
         let buf = RVertexBufferIndexed::new((&verts, &indices));
 
+        let mut id = GLOBAL_MIRROR_ID.lock().unwrap();
+        *id += 1;
+
         Self {
             buf,
             pos,
-            angle
+            angle,
+            just_reflected: false,
+            id: *id,
         }
     }
 
@@ -83,18 +97,30 @@ impl Mirror {
     }
 
     pub fn in_bounds(&self, x: f32, y: f32) -> bool {
+        let (x_pos, y_pos) = (self.pos.x * 200.0, self.pos.y * 200.0);
+
         let mut verts = vec![
-            0.25 * 400.0 + self.pos.x, 0.5 * 400.0 + self.pos.y, // top right
-            0.25 * 400.0 + self.pos.x, -0.5 * 400.0 + self.pos.y, // bottom right
-            -0.25 * 400.0 + self.pos.x, -0.5 * 400.0 + self.pos.y, // bottom left 
-            -0.25 * 400.0 + self.pos.x, 0.5 * 400.0 + self.pos.y, // top left 
+            (0.01 * 400.0) + x_pos, (0.5 * 400.0) + y_pos, // top right
+            (0.01 * 400.0) + x_pos, (-0.5 * 400.0) + y_pos, // bottom right
+            (-0.01 * 400.0) + x_pos, (-0.5 * 400.0) + y_pos, // bottom left 
+            (-0.01 * 400.0) + x_pos, (0.5 * 400.0) + y_pos, // top left 
         ];
 
         let new_verts = Geometry::rotate_polygon2d(&mut verts, self.angle);
-
+        
         Geometry::in_point_inside_polygon2d(x, y, new_verts)
     }
 
     // pub fn cleanup(&mut self) { self.buf.clear(); }
 }
 
+
+impl PartialEq for Mirror {
+    fn eq(&self, other: &Self) -> bool {
+        if self.id == other.id {
+            true
+        } else {
+            false
+        }
+    }
+}
