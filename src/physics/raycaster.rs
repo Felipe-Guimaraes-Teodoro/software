@@ -122,6 +122,7 @@ pub fn check_collision
         tx.send(CollisionResult {collision_type: CollisionType::Void, mirror: None, x: end_pos.0, y: end_pos.1})
             .expect("channel will be waiting for pool");
 
+        return
     });
     } // for mirror
     
