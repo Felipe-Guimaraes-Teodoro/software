@@ -89,7 +89,7 @@ impl RayCaster {
         for line in &self.lines {
             let (x0, y0, x1, y1) = (line[0], line[1], line[2], line[3]);
             let line = fdl.add_line([x0, y0], [x1, y1], [1.0, 1.0, 1.0, 1.0]);
-            fdl.add_text([x1, y1], [1.0, 1.0, 1.0], format!("{:?}", [x1, y1]));
+            // fdl.add_text([x1, y1], [1.0, 1.0, 1.0], format!("{:?}", [x1, y1]));
             line.build();
         }
         
