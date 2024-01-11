@@ -4,6 +4,7 @@ use crate::{environment::Mirror, util::Math};
 
 use std::sync::mpsc::channel;
 
+#[derive(Clone)]
 pub struct RayCaster {
     // raycaster should be able to read data from the world
     // maybe make it so raycaster is a member of world, and have
@@ -13,9 +14,10 @@ pub struct RayCaster {
     // of raycaster 
 
     mirrors: Vec<Mirror>,
-    depth: u32,
+    pub lines: Vec<[f32; 4]>,
 }
 
+#[derive(Debug)]
 pub struct CollisionResult {
     collision_type: CollisionType,
     mirror: Option<Mirror>,
@@ -23,29 +25,30 @@ pub struct CollisionResult {
     y: f32,
 }
 
+pub struct CastResult {
+    pub start_pos: (f32, f32),
+    pub angle: f32,
+    pub length: f32,
+    pub depth: u32,
+    pub ignore_mirror: Option<Mirror>,
+    pub previous_lines: Vec<[f32; 4]>,
+}
+
 impl RayCaster {
     pub fn new() -> Self {
         Self {
             mirrors: vec![],
-            depth: 0,
+            lines: vec![],
         }
     }
-    pub fn cast(&mut self, start_pos: (f32, f32), angle: f32, length: f32, fdl: &DrawListMut, d: u32, ignore_mirror: Option<&Mirror>) {
-        let (ray_dir_x, ray_dir_y) = (angle.cos(), angle.sin());
+    pub fn cast(&mut self, mut r: CastResult) {
+        let (ray_dir_x, ray_dir_y) = (r.angle.cos(), r.angle.sin());
 
-        let end_x = start_pos.0 + length * ray_dir_x;
-        let end_y = start_pos.1 + length * ray_dir_y;
+        let end_x = r.start_pos.0 + r.length * ray_dir_x;
+        let end_y = r.start_pos.1 + r.length * ray_dir_y;
         let end_pos = (end_x, end_y);
 
-
-        let c = check_collision(self.mirrors.clone(), start_pos, end_pos, ignore_mirror.copied());
-                
-        let line = fdl.add_line(
-            [start_pos.0, start_pos.1], 
-            [c.x, c.y], 
-            [Math::random(0.7, 1.0), Math::random(0.7, 1.0), Math::random(0.7, 1.0), 1.0]
-        ).thickness(1.0);
-        line.build();
+        let c = check_collision(self.mirrors.clone(), r.start_pos, end_pos, r.ignore_mirror.clone());
         
         match c.collision_type {
             CollisionType::Mirror => {
@@ -53,8 +56,20 @@ impl RayCaster {
                 let x = c.x;
                 let y = c.y;
 
-                if d < 20 {
-                    self.cast((x, y), -mirror.angle + 3.1415, 400.0, fdl, d+1, Some(&mirror));
+                let line = [r.start_pos.0, r.start_pos.1, x, y];
+
+                self.lines.push(line);
+                r.previous_lines.push(line);
+
+                if r.depth < 20 {
+                    self.cast(CastResult {
+                        start_pos: r.start_pos,
+                        angle: -mirror.angle + 3.1415,
+                        length: 400.0,
+                        depth: r.depth + 1,
+                        ignore_mirror: Some(mirror),
+                        previous_lines: r.previous_lines,
+                    });
                 }
             }
 
@@ -64,14 +79,25 @@ impl RayCaster {
             CollisionType::Void => {
             }
         }
+    }
+
+    pub fn clear_lines(&mut self) {
+        self.lines.clear();
+    }
+
+    pub fn draw_lines(&mut self, fdl: &DrawListMut) {
+        for line in &self.lines {
+            let (x0, y0, x1, y1) = (line[0], line[1], line[2], line[3]);
+            let line = fdl.add_line([x0, y0], [x1, y1], [1.0, 1.0, 1.0, 1.0]);
+            fdl.add_text([x1, y1], [1.0, 1.0, 1.0], format!("{:?}", [x1, y1]));
+            line.build();
+        }
         
     }
 
     pub fn update(&mut self, mirrors: &Vec<Mirror>) {
         self.mirrors = mirrors.to_vec();
     }
-
-    
 }
 
 pub fn check_collision
@@ -82,20 +108,19 @@ pub fn check_collision
     ignore_mirror: Option<Mirror>
     ) -> CollisionResult 
 {
-    let (tx, rx) = channel();
-
     let num_iterations = 256;
 
     for mirror in mirrors {
-    let tx = tx.clone();
-    crate::GLOBAL_POOL.execute(move || {
+        // in the case the collision we're checking if it's with the same mirror than before
         if ignore_mirror.is_some() {
             if mirror == ignore_mirror.unwrap() {
-                tx.send(CollisionResult {collision_type: CollisionType::Void, mirror: None, x: end_pos.0, y: end_pos.1})
-                    .expect("channel will be waiting for pool");
-
-                return
                 // return (CollisionType::Void, None, end_pos)
+                return CollisionResult {
+                    collision_type: CollisionType::Void,
+                    mirror: None,
+                    x: end_pos.0,
+                    y: end_pos.1,
+                };
             }
         }
 
@@ -106,29 +131,35 @@ pub fn check_collision
             let y = c_pos.1;
 
             if mirror.in_bounds(x, y) {
-                // return (CollisionType::Mirror, Some(*mirror), (x, y));
-                
-                tx.send(CollisionResult {collision_type: CollisionType::Mirror, mirror: Some(mirror), x, y})
-                    .expect("channel will be waiting for pool");
-
-                return
+                // we hit a mirror
+                return CollisionResult {
+                    collision_type: CollisionType::Mirror,
+                    mirror: Some(mirror),
+                    x, y,
+                };
             }
-            
+
+
         }
-        // todo!();
 
-    // return (CollisionType::Void, None, end_pos)
+        // we didn't hit anything
+        return CollisionResult {
+            collision_type: CollisionType::Void,
+            mirror: None,
+            x: end_pos.0,
+            y: end_pos.1,
+        };
     
-        tx.send(CollisionResult {collision_type: CollisionType::Void, mirror: None, x: end_pos.0, y: end_pos.1})
-            .expect("channel will be waiting for pool");
 
-        return
-    });
     } // for mirror
     
-    let result = rx.recv().unwrap();
-
-    return result
+    // return the collision result
+    return CollisionResult {
+        collision_type: CollisionType::Void,
+        mirror: None,
+        x: end_pos.0,
+        y: end_pos.1,
+    }
 }
 
 pub fn lerp(s: (f32, f32), e: (f32, f32), t: f32)

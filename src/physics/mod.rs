@@ -1,3 +1,3 @@
 mod raycaster;
 
-pub use raycaster::RayCaster;
+pub use raycaster::{RayCaster, CastResult};
