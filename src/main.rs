@@ -10,6 +10,7 @@ mod environment;
 use threadpool::ThreadPool;
 
 
+// make a thread pool in which the thread number is the number of threads the current system has
 lazy_static::lazy_static!{
     pub static ref GLOBAL_POOL: ThreadPool = 
         ThreadPool::new(std::thread::available_parallelism().unwrap().get());

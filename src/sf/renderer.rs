@@ -1,8 +1,6 @@
 use crate::sf::*;
 use crate::environment::*;
 
-use std::sync::{Arc, RwLock};
-
 pub trait Drawable {
     unsafe fn draw(&self, shader: &Shader);
 }
@@ -10,7 +8,7 @@ pub trait Drawable {
 pub struct Renderer {
     pub camera: Camera,
 
-    line_shader: Shader,
+    polygon_shader: Shader,
     pub mirror_shader: Shader, 
 
     pub polygon_ammount: usize,
@@ -23,13 +21,13 @@ pub struct Renderer {
 impl Renderer {
     pub fn new() -> Renderer {
         let camera = Camera::new();
-        let line_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
+        let polygon_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
         let mirror_shader = Shader::new_pipeline(MIRROR_VS, MIRROR_FS);
 
         Self {
             camera,
 
-            line_shader,
+            polygon_shader,
             mirror_shader,
 
             polygon_ammount: 0,
@@ -41,11 +39,11 @@ impl Renderer {
 
     pub unsafe fn draw(&mut self) {
         // draw polygons
-        self.camera.send_uniforms(&self.line_shader);
+        self.camera.send_uniforms(&self.polygon_shader);
 
         for polygon in 0..self.polygon_ammount {
             if let Some(polygon) = self.polygons[polygon] {
-                polygon.draw(&self.line_shader);
+                polygon.draw(&self.polygon_shader);
             }
         }
     }
