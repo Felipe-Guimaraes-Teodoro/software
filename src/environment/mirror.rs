@@ -96,8 +96,8 @@ impl Mirror {
         self.angle = angle;
     }
 
-    pub fn in_bounds(&self, x: f32, y: f32) -> bool {
-        let (x_pos, y_pos) = (self.pos.x * 200.0, self.pos.y * 200.0);
+    pub fn in_bounds(&mut self, x: f32, y: f32, ofs: Vector3<f32>) -> bool {
+        let (x_pos, y_pos) = (ofs.x * 400.0, ofs.y * 400.0);
 
         let mut verts = vec![
             (0.01 * 400.0) + x_pos, (0.5 * 400.0) + y_pos, // top right
@@ -106,7 +106,7 @@ impl Mirror {
             (-0.01 * 400.0) + x_pos, (0.5 * 400.0) + y_pos, // top left 
         ];
 
-        let new_verts = Geometry::rotate_polygon2d(&mut verts, self.angle);
+        let new_verts = Geometry::rotate_polygon2d(&mut verts, self.angle, vec![x_pos, y_pos]);
         
         Geometry::in_point_inside_polygon2d(x, y, new_verts)
     }

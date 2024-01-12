@@ -29,7 +29,6 @@ pub struct CastResult {
     pub start_pos: (f32, f32),
     pub angle: f32,
     pub length: f32,
-    pub depth: u32,
     pub ignore_mirror: Option<Mirror>,
     pub previous_lines: Vec<[f32; 4]>,
 }
@@ -41,7 +40,7 @@ impl RayCaster {
             lines: vec![],
         }
     }
-    pub fn cast(&mut self, mut r: CastResult) {
+    pub fn cast(&mut self, mut r: CastResult, depth: u32) -> Option<(CastResult, u32)> {
         let (ray_dir_x, ray_dir_y) = (r.angle.cos(), r.angle.sin());
 
         let end_x = r.start_pos.0 + r.length * ray_dir_x;
@@ -57,28 +56,37 @@ impl RayCaster {
                 let y = c.y;
 
                 let line = [r.start_pos.0, r.start_pos.1, x, y];
-
                 self.lines.push(line);
+
                 r.previous_lines.push(line);
 
-                if r.depth < 20 {
-                    self.cast(CastResult {
+                if depth < 20 {
+                    return Some((CastResult {
                         start_pos: r.start_pos,
                         angle: -mirror.angle + 3.1415,
                         length: 400.0,
-                        depth: r.depth + 1,
                         ignore_mirror: Some(mirror),
                         previous_lines: r.previous_lines,
-                    });
+                    }, depth + 1));
                 }
             }
 
             CollisionType::Diffuse => {
+                return None;
             }
 
             CollisionType::Void => {
+                let x = c.x;
+                let y = c.y;
+
+                let line = [r.start_pos.0, r.start_pos.1, x, y];
+                self.lines.push(line);
+
+                r.previous_lines.push(line);
             }
         }
+
+        None
     }
 
     pub fn clear_lines(&mut self) {
@@ -110,7 +118,7 @@ pub fn check_collision
 {
     let num_iterations = 256;
 
-    for mirror in mirrors {
+    for mut mirror in mirrors {
         // in the case the collision we're checking if it's with the same mirror than before
         if ignore_mirror.is_some() {
             if mirror == ignore_mirror.unwrap() {
@@ -130,7 +138,7 @@ pub fn check_collision
             let x = c_pos.0;
             let y = c_pos.1;
 
-            if mirror.in_bounds(x, y) {
+            if mirror.in_bounds(x, y, mirror.pos) {
                 // we hit a mirror
                 return CollisionResult {
                     collision_type: CollisionType::Mirror,
@@ -138,17 +146,15 @@ pub fn check_collision
                     x, y,
                 };
             }
-
-
         }
 
-        // we didn't hit anything
-        return CollisionResult {
-            collision_type: CollisionType::Void,
-            mirror: None,
-            x: end_pos.0,
-            y: end_pos.1,
-        };
+        // // we didn't hit anything
+        // return CollisionResult {
+        //     collision_type: CollisionType::Void,
+        //     mirror: None,
+        //     x: end_pos.0,
+        //     y: end_pos.1,
+        // };
     
 
     } // for mirror

@@ -64,27 +64,21 @@ impl Geometry {
         return inside;
     }
 
-    pub fn rotate_polygon2d(polygon: &mut Vec<f32>, angle: f32) -> &Vec<f32> {
+    pub fn rotate_polygon2d(polygon: &mut Vec<f32>, angle: f32, pivot: Vec<f32>) -> &Vec<f32> {
         let angle = angle + 1.57079633;
-
-        let points: Vec<Point> = polygon
-            .chunks(2)
-            .map(|points| Point {
-                x: points[0], // + pivot_x
-                y: points[1], // + pivot_y
-            })
-            .collect();
 
         let cos_angle = angle.cos();
         let sin_angle = angle.sin();
 
-        // Iterate over each pair of (x, y) coordinates and rotate them
-        for i in 0..points.len() {
-            let rot_x = points[i].x * cos_angle - points[i].y * sin_angle;
-            let rot_y = points[i].x * sin_angle + points[i].y * cos_angle;
+        for i in 0..polygon.len() / 2 {
+            let x = polygon[i * 2] - pivot[0];
+            let y = polygon[i * 2 + 1] - pivot[1];
 
-            polygon[i * 2] = rot_x; // - pivot_x ;
-            polygon[i * 2 + 1] = rot_y; // - pivot_y;
+            let rot_x = x * cos_angle - y * sin_angle;
+            let rot_y = x * sin_angle + y * cos_angle;
+
+            polygon[i * 2] = rot_x - pivot[1];
+            polygon[i * 2 + 1] = rot_y + pivot[0];
         }
 
         polygon

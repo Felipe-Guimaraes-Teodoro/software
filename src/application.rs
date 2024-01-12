@@ -22,8 +22,8 @@ impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
         let mut world = World::new();
         let ray_caster = RayCaster::new();
-        world.push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 0.0); // debug mirror
-        // world.push_mirror(cgmath::vec3(0.0, 0.0, 0.0), 1.57); // debug mirror
+        world.push_mirror(cgmath::vec3(0.0, -0.2, 0.0), 0.0); // debug mirror
+        world.push_mirror(cgmath::vec3(0.0, 0.1, 0.0), -0.6); // debug mirror
 
         let renderer = Renderer::new();
 
@@ -47,20 +47,11 @@ impl Application {
 
         let fdl = frame.get_foreground_draw_list();
 
-        let ofs = 0.0;
-
-        // for i in -64..64 {
-        //     let ofs = i as f32;
-        //     self.ray_caster.cast((0.0, 400.0 + ofs), 0.0, 800.0, &fdl, 0, None);
-        // }
-
         self.ray_caster.lock().unwrap().draw_lines(&fdl);
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
 
         frame.text(format!("{:?}", 1.0/self.renderer.camera.dt));
-
-        let m_pos = frame.io().mouse_pos;
 
         self.ray_caster.lock().unwrap().clear_lines();
     } 
@@ -71,27 +62,19 @@ impl Application {
 
         self.ray_caster.lock().unwrap().update(&self.world.mirrors);
 
-
-        let clone = self.ray_caster.clone();
-        for i in -64..64 {
-            let clone = clone.clone();
-            // crate::GLOBAL_POOL.execute(move || {
-                let mut ray_caster = clone.lock().unwrap();
-                
-                ray_caster.cast(CastResult {
-                    start_pos: (0.0, 400.0 + i as f32),
-                    angle: 0.0,
-                    length: 800.0,
-                    depth: 0,
-                    ignore_mirror: None,
-                    previous_lines: vec![],
-                });
-            // });
+        let cast = self.ray_caster.lock().unwrap().cast(CastResult {
+            start_pos: (0.0, 400.0),
+            angle: 0.0,
+            length: 800.0,
+            ignore_mirror: None,
+            previous_lines: vec![],
+        }, 0);
+        if cast.is_some() {
+            let result = cast.unwrap();
+            let cast = self.ray_caster.lock().unwrap().cast(result.0, result.1);
         }
-        
-        
 
-        self.world.mirrors[0].update(cgmath::vec3(0.0, 0.5, 0.0), self.slider_val * 3.14);
+        self.world.mirrors[0].update(cgmath::vec3(0.0, 0.2, 0.0), self.slider_val * 3.14);
         self.world.io(&mut self.glfw, &mut self.window);
     }
 
