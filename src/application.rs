@@ -1,6 +1,6 @@
 use glfw::*;
 use gl::*;
-use crate::physics::{RayCaster, CastResult};
+use crate::physics::RayCaster;
 
 use crate::{sf::*, ui::Imgui};
 use crate::environment::World;
@@ -47,13 +47,12 @@ impl Application {
 
         let fdl = frame.get_foreground_draw_list();
 
-        self.ray_caster.lock().unwrap().draw_lines(&fdl);
+        // self.ray_caster.lock().unwrap().draw_lines(&fdl);
+        let cast = self.ray_caster.lock().unwrap().cast((0.0, 400.0), 0.0, 400.0, &fdl, 0);
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
 
         frame.text(format!("{:?}", 1.0/self.renderer.camera.dt));
-
-        self.ray_caster.lock().unwrap().clear_lines();
     } 
 
     pub fn update(&mut self) {
@@ -62,17 +61,6 @@ impl Application {
 
         self.ray_caster.lock().unwrap().update(&self.world.mirrors);
 
-        let cast = self.ray_caster.lock().unwrap().cast(CastResult {
-            start_pos: (0.0, 400.0),
-            angle: 0.0,
-            length: 800.0,
-            ignore_mirror: None,
-            previous_lines: vec![],
-        }, 0);
-        if cast.is_some() {
-            let result = cast.unwrap();
-            let cast = self.ray_caster.lock().unwrap().cast(result.0, result.1);
-        }
 
         self.world.mirrors[0].update(cgmath::vec3(0.0, 0.2, 0.0), self.slider_val * 3.14);
         self.world.io(&mut self.glfw, &mut self.window);
