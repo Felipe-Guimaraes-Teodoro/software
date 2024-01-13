@@ -26,8 +26,17 @@ pub fn run() {
     let mut app = Application::new(window, glfw);
 
     while !app.window_mut().should_close() {
-        app.update();
         app.ui();
+        let raycaster = app.ray_caster.clone();
+        let mirrors = app.world.mirrors.clone();
+        crate::GLOBAL_POOL.execute(move || {
+            if raycaster.lock().unwrap().can_draw() {
+                Application::raycaster(raycaster, mirrors);
+            } else {
+                // nothing
+            }
+        });
+        app.update();
         unsafe {
             app.render();
         }

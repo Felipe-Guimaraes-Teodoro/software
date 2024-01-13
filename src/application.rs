@@ -12,8 +12,8 @@ pub struct Application {
     glfw: Glfw,
     pub ui: Imgui,
     renderer: Renderer,
-    world: World,
-    ray_caster: Arc<Mutex<RayCaster>>,
+    pub world: World,
+    pub ray_caster: Arc<Mutex<RayCaster>>,
 
     slider_val: f32,
 }
@@ -47,8 +47,7 @@ impl Application {
 
         let fdl = frame.get_foreground_draw_list();
 
-        // self.ray_caster.lock().unwrap().draw_lines(&fdl);
-        let cast = self.ray_caster.lock().unwrap().cast((0.0, 400.0), 0.0, 400.0, &fdl, 0, None);
+        self.ray_caster.lock().unwrap().draw_lines(&fdl);
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
 
@@ -59,11 +58,18 @@ impl Application {
         self.renderer.camera.update();
         self.renderer.camera.input(&mut self.window, &self.glfw);
 
-        self.ray_caster.lock().unwrap().update(&self.world.mirrors);
 
 
         self.world.mirrors[0].update(cgmath::vec3(-0.3, 0.3, 0.0), self.slider_val * 3.14 + 0.4);
         self.world.io(&mut self.glfw, &mut self.window);
+    }
+
+    pub fn raycaster(ray_caster: Arc<Mutex<RayCaster>>, mirrors: Vec<crate::environment::Mirror>) {
+        for i in -8..8 {
+            ray_caster.lock().unwrap().cast((0.0, 400.0 + i as f32), 0.0, 400.0, 0, None);
+        }
+
+        ray_caster.lock().unwrap().update(&mirrors);
     }
 
     pub unsafe fn render(&mut self) {
