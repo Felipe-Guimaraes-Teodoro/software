@@ -2,7 +2,7 @@ use imgui::Ui;
 use imgui::DrawListMut;
 use crate::{environment::Mirror, util::Math};
 
-
+const NUM_ITERATIONS: i32 = 256;
 
 pub struct RayCaster {
     // raycaster should be able to read data from the world
@@ -27,14 +27,21 @@ impl RayCaster {
         let end_y = start_pos.1 + length * ray_dir_y;
         let end_pos = (end_x, end_y);
 
-        let c = self.check_collision(start_pos, previous_mirror, end_pos);
+        // let (tx, rx) = std::sync::mpsc::channel();
+        // crate::GLOBAL_POOL.execute(move || {
+            // tx.send(Self::check_collision(mirrors, start_pos, previous_mirror, end_pos))
+                // .expect("channel will be waiting for pool");
+        // });
 
+        // let c = rx.recv().unwrap();
 
-        match c.0 {
+        let c = Self::check_collision(&self.mirrors, start_pos, previous_mirror, end_pos);
+
+        match c.col_type {
             CollisionType::Mirror => {
-                let mirror = c.1.unwrap();
-                let x = c.2.0;
-                let y = c.2.1;
+                let mirror = c.mirror.unwrap();
+                let x = c.end_pos.0;
+                let y = c.end_pos.1;
 
                 let line = fdl.add_line(
                     [start_pos.0, start_pos.1], 
@@ -56,9 +63,12 @@ impl RayCaster {
             
             CollisionType::Void => {
                 // dbg!("VOID");
+                let x = c.end_pos.0;
+                let y = c.end_pos.1;
+
                 let line = fdl.add_line(
                     [start_pos.0, start_pos.1],
-                    [end_pos.0, end_pos.1],
+                    [x, y],
                     [Math::random(0.7, 1.0), Math::random(0.7, 1.0), Math::random(0.7, 1.0), 1.0] 
                 ).thickness(1.0);
                 line.build();
@@ -71,30 +81,42 @@ impl RayCaster {
         self.mirrors = mirrors.to_vec();
     }
     pub fn check_collision
-        (&mut self, 
+        (mirrors: &Vec<Mirror>,
         start_pos: (f32, f32), 
         previous_mirror: Option<Mirror>,
-        end_pos: (f32, f32)) -> (CollisionType, Option<Mirror>, (f32, f32)) 
+        end_pos: (f32, f32)) -> CollisionResult 
     {
-        for mirror in &mut self.mirrors {
+        for mirror in mirrors {
             if previous_mirror.is_some() {
                 if *mirror == previous_mirror.unwrap() {
-                    return (CollisionType::Void, previous_mirror, (0.0, 0.0));
+                    return CollisionResult { 
+                        col_type: CollisionType::Void, 
+                        mirror: previous_mirror, 
+                        end_pos, 
+                    };
                 }
             }
-            for i in 0..256 {
-                let c_pos = Self::lerp(start_pos, end_pos, i as f32 / 256.0);
+            for i in 0..NUM_ITERATIONS {
+                let c_pos = Self::lerp(start_pos, end_pos, i as f32 / NUM_ITERATIONS as f32);
                 let x = c_pos.0;
                 let y = c_pos.1;
                 if mirror.in_bounds(x, y, mirror.pos) {
-                    return (CollisionType::Mirror, Some(*mirror), (x, y));
+                    return CollisionResult {
+                        col_type: CollisionType::Mirror, 
+                        mirror: Some(*mirror), 
+                        end_pos: (x, y)
+                    };
                 }
                 
             }
-            // todo!();
-            // return (CollisionType::Void, None, (0.0, 0.0));
+            
         }
-        (CollisionType::Void, None, (0.0, 0.0))
+
+        CollisionResult { 
+            col_type: CollisionType::Void, 
+            mirror: None, 
+            end_pos,
+        }
     }
 
     pub fn lerp(s: (f32, f32), e: (f32, f32), t: f32) -> (f32, f32) {
@@ -113,4 +135,10 @@ pub enum CollisionType {
     Mirror,
     Void,
     Diffuse,
+}
+
+pub struct CollisionResult {
+    col_type: CollisionType,
+    mirror: Option<Mirror>,
+    end_pos: (f32, f32),
 }

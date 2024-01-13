@@ -79,7 +79,7 @@ impl Mirror {
             just_reflected: false,
             id: *id,
         }
-    }
+    }           
 
     pub unsafe fn draw(&self, shader: &Shader) {
         shader.use_shader();
@@ -96,7 +96,7 @@ impl Mirror {
         self.angle = angle;
     }
 
-    pub fn in_bounds(&mut self, x: f32, y: f32, ofs: Vector3<f32>) -> bool {
+    pub fn in_bounds(&self, x: f32, y: f32, ofs: Vector3<f32>) -> bool {
         let (x_pos, y_pos) = (ofs.x * 400.0, ofs.y * 400.0);
 
         let mut verts = vec![

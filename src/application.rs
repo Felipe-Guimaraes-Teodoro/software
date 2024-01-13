@@ -94,3 +94,8 @@ impl Application {
 /*
  * app.renderer.add_polygon( VERTICES: *&Vec<f32>*, COR: *Vector3<f32>* );
  */
+
+
+fn rand_vec3() -> cgmath::Vector3<f32> {
+    cgmath::vec3(crate::util::Math::random(-1.0, 1.0), crate::util::Math::random(-1.0, 1.0), crate::util::Math::random(-1.0, 1.0))
+}
