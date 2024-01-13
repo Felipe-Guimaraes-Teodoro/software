@@ -50,7 +50,7 @@ pub struct Mirror {
     pub pos: Vector3<f32>,
     pub angle: f32,
     pub just_reflected: bool,
-    id: u32,
+    pub id: u32,
 }
 
 impl Mirror {
