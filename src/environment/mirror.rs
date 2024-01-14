@@ -54,7 +54,7 @@ pub struct Mirror {
 }
 
 impl Mirror {
-    pub fn new(pos: Vector3<f32>, angle: f32,) -> Self {
+    pub fn new(pos: &Vector3<f32>, angle: f32,) -> Self {
         let verts = vec![
             0.01, 0.5, 0.0, // top right
             0.01, -0.5, 0.0, // bottom right
@@ -74,7 +74,7 @@ impl Mirror {
 
         Self {
             buf,
-            pos,
+            pos: *pos,
             angle,
             just_reflected: false,
             id: *id,

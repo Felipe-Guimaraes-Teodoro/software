@@ -48,6 +48,7 @@ impl Application {
         let fdl = frame.get_foreground_draw_list();
 
         self.ray_caster.lock().unwrap().draw_lines(&fdl);
+        self.world.debug_mirrors(&fdl);
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
 
@@ -65,9 +66,9 @@ impl Application {
     }
 
     pub fn raycaster(ray_caster: Arc<Mutex<RayCaster>>, mirrors: Vec<crate::environment::Mirror>) {
-        for i in -8..8 {
-            ray_caster.lock().unwrap().cast((0.0, 400.0 + i as f32), 0.0, 400.0, 0, None);
-        }
+        // for i in -8..8 {
+            ray_caster.lock().unwrap().cast((0.0, 400.0), 0.0, 400.0, 0, None);
+        // }
 
         ray_caster.lock().unwrap().update(&mirrors);
     }

@@ -73,6 +73,8 @@ impl RayCaster {
                 let y = c.end_pos.1;
 
                 self.draw_list.push([start_pos.0, start_pos.1, x, y]);
+
+                self.cast((x, y), angle, 10.0, d+5, None);
             }
         }
     }
@@ -102,7 +104,7 @@ impl RayCaster {
                 let c_pos = Self::lerp(start_pos, end_pos, i as f32 / NUM_ITERATIONS as f32);
                 let x = c_pos.0;
                 let y = c_pos.1;
-                if mirror.in_bounds(x, y, mirror.pos) {
+                if mirror.in_bounds(x, y, mirror.pos.into()) {
                     return CollisionResult {
                         col_type: CollisionType::Mirror, 
                         mirror: Some(*mirror), 

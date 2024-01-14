@@ -25,7 +25,13 @@ impl World {
     }
 
     pub fn push_mirror(&mut self, pos: Vector3<f32>, angle: f32) {
-        self.mirrors.push(Mirror::new(pos, angle));
+        self.mirrors.push(Mirror::new(&pos, angle));
+    }
+
+    pub fn debug_mirrors(&mut self, fdl: &imgui::DrawListMut) {
+        for mirror in &self.mirrors {
+            fdl.add_text([mirror.pos.x, mirror.pos.y], [1.0, 1.0, 1.0], "str");
+        }
     }
 
     pub fn io(&mut self, glfw: &mut glfw::Glfw, window: &mut glfw::Window) {
@@ -51,9 +57,7 @@ impl World {
 // implement world draw method
 impl Renderer {
     pub unsafe fn draw_world(&mut self, world: &World) {
-        let mirrors = &world.mirrors;
-       
-        for mirror in mirrors {
+        for mirror in &world.mirrors {
             mirror.draw(&self.mirror_shader);
         }
     }
