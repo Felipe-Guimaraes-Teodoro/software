@@ -21,9 +21,8 @@ fn main() {
     // let x = std::thread::spawn(|| {
     //     event_loop::run();
     // });
-
+    
     event_loop::run();
-
 
     // let _ = x.join();
 }

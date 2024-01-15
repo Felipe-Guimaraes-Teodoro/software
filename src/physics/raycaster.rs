@@ -3,29 +3,22 @@ use imgui::DrawListMut;
 use crate::{environment::Mirror, util::Math};
 
 const NUM_ITERATIONS: i32 = 256;
+const MAX_LINES: usize = 256;
 
 pub struct RayCaster {
-    // raycaster should be able to read data from the world
-    // maybe make it so raycaster is a member of world, and have
-    // access to it
-    //
-    // other suggestion is to make a reference of world be a member
-    // of raycaster 
     mirrors: Vec<Mirror>,
-    depth: u32,
     draw_list: Vec<[f32; 4]>,
 }
 impl RayCaster {
     pub fn new() -> Self {
         Self {
             mirrors: vec![],
-            depth: 0,
             draw_list: vec![],
         }
     }
 
     pub fn can_draw(&mut self) -> bool {
-        if self.draw_list.len() > 256 {
+        if self.draw_list.len() > MAX_LINES {
             false
         } else {
             true
@@ -38,24 +31,17 @@ impl RayCaster {
         let end_y = start_pos.1 + length * ray_dir_y;
         let end_pos = (end_x, end_y);
 
-        // let (tx, rx) = std::sync::mpsc::channel();
-        // crate::GLOBAL_POOL.execute(move || {
-            // tx.send(Self::check_collision(mirrors, start_pos, previous_mirror, end_pos))
-                // .expect("channel will be waiting for pool");
-        // });
-
-        // let c = rx.recv().unwrap();
-        if d > 20 { return } 
+        if d > 128 { return } 
 
         let c = Self::check_collision(&self.mirrors, start_pos, previous_mirror, end_pos);
 
         match c.col_type {
             CollisionType::Mirror => {
                 let mirror = c.mirror.unwrap();
+
                 let x = c.end_pos.0;
                 let y = c.end_pos.1;
 
-                // maybe use vec.swap_remove() to add line
                 self.draw_list.push([start_pos.0, start_pos.1, x, y]);
 
                 let normal = -mirror.angle + 3.1415;
@@ -68,13 +54,13 @@ impl RayCaster {
             }
             
             CollisionType::Void => {
-                // dbg!("VOID");
                 let x = c.end_pos.0;
                 let y = c.end_pos.1;
 
                 self.draw_list.push([start_pos.0, start_pos.1, x, y]);
 
-                self.cast((x, y), angle, 10.0, d+5, None);
+                // bigger penalty for when the cast hits void
+                self.cast((x, y), angle, 400.0, d+5, c.mirror);
             }
         }
     }
@@ -95,11 +81,12 @@ impl RayCaster {
                 if *mirror == previous_mirror.unwrap() {
                     return CollisionResult { 
                         col_type: CollisionType::Void, 
-                        mirror: previous_mirror, 
+                        mirror: Some(*mirror), 
                         end_pos, 
                     };
                 }
             }
+
             for i in 0..NUM_ITERATIONS {
                 let c_pos = Self::lerp(start_pos, end_pos, i as f32 / NUM_ITERATIONS as f32);
                 let x = c_pos.0;
@@ -111,9 +98,8 @@ impl RayCaster {
                         end_pos: (x, y)
                     };
                 }
-                
+
             }
-            
         }
 
         CollisionResult { 
