@@ -106,11 +106,14 @@ impl SecondOrderDynamics {
         }
     }
 
-    pub fn update(&mut self, timestep: f32, x: Vector3<f32>, xd: Vector3<f32>) -> Vector3<f32> {
+    pub fn update(&mut self, timestep: f32, x: Vector3<f32>) -> Vector3<f32> {
         // if xd == None {
         //     xd = (x - self.xp) / timestep;
         //     self.xp = x;
         // } 
+
+        let xd = (x - self.xp) / timestep;
+        self.xp = x;
 
         self.y = self.y + timestep * self.yd;
         self.yd = self.yd + timestep * (x + self.k3*xd - self.y - self.k1*self.yd) / self.k2;

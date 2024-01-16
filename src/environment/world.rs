@@ -1,7 +1,8 @@
 use crate::{environment::*, sf::Renderer};
 use crate::sf::Drawable;
+use crate::util::SecondOrderDynamics;
 
-use cgmath::Vector3;
+use cgmath::*;
 use std::sync::{Arc, RwLock};
 
 enum State {
@@ -11,16 +12,23 @@ enum State {
 
 pub struct World {
     pub mirrors: Vec<Mirror>,
+    sod_controller: SecondOrderDynamics,
     mirror_ammount: usize,
-    state: State
+    state: State,
+    mouse_angle: f32,
 }
 
 impl World {
     pub fn new() -> Self {
+        let viewing_mirror = Mirror::new(&[-10.0, -10.0, 0.0].into(), 0.0);
+        let sod_controller = SecondOrderDynamics::new(0.5, 0.5, 0.5, vec3(0.0, 0.0, 0.0));
+
         Self {
-            mirrors: vec![],
+            mirrors: vec![viewing_mirror],
+            sod_controller,
             mirror_ammount: 0,
             state: State::None,
+            mouse_angle: 0.0,
         }
     }
 
@@ -30,7 +38,7 @@ impl World {
 
     pub fn debug_mirrors(&mut self, fdl: &imgui::DrawListMut) {
         for mirror in &self.mirrors {
-            fdl.add_text([mirror.pos.x, mirror.pos.y], [1.0, 1.0, 1.0], "str");
+            fdl.add_text([(mirror.pos.x * 400.0) - 800.0, (mirror.pos.y * 400.0) - 800.0], [1.0, 1.0, 1.0], "str");
         }
     }
 
@@ -41,11 +49,28 @@ impl World {
             self.state = State::None;
         }
 
+        if window.get_key(glfw::Key::K) == glfw::Action::Press {
+            self.mouse_angle += 0.1;
+        } else if window.get_key(glfw::Key::J) == glfw::Action::Press {
+            self.mouse_angle -= 0.1;
+        }
+
+
         match self.state {
             State::PlacingMirror => {
+                let x = (((window.get_cursor_pos().0 as f32 * 2.0) - 1.0) / 800.0) - 1.0;
+                let y = (((-window.get_cursor_pos().1 as f32 * 2.0) - 1.0) / 800.0) + 1.0;
+
+                let yr = self.sod_controller.update(0.1, vec3(x, y, 0.0));
+
+                self.mirrors[0].pos = yr; 
+                self.mirrors[0].angle = self.mouse_angle;
+                // dbg!(self.viewing_mirror.pos);
+
                 if window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Press {
                     self.state = State::None;
-                    dbg!("mirror has been placed");
+                    self.push_mirror([x, y, 0.0].into(), self.mouse_angle);
+                    self.mirrors[0].pos = [-5.0, -5.0, 0.0].into(); 
                 }     
             },
 

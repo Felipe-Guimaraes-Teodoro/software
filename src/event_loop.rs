@@ -19,8 +19,7 @@ pub fn run() {
     window.make_current();
 
 
-    glfw.set_swap_interval(glfw::SwapInterval::Sync(0));
-   //load gl functions
+    // glfw.set_swap_interval(glfw::SwapInterval::Sync(0));
     gl::load_with(|s| window.get_proc_address(s) as * const _);
 
     let mut app = Application::new(window, glfw);

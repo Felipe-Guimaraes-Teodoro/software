@@ -22,8 +22,14 @@ impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
         let mut world = World::new();
         let ray_caster = RayCaster::new();
-        world.push_mirror(cgmath::vec3(0.0, -0.5, 0.0), 0.0); // debug mirror
-        world.push_mirror(cgmath::vec3(-0.1, 0.1, 0.0), -0.6); // debug mirror
+        // world.push_mirror(cgmath::vec3(0.0, -0.5, 0.0), 0.0); // debug mirror
+        // world.push_mirror(cgmath::vec3(-0.1, 0.1, 0.0), -0.6); // debug mirror
+        // world.push_mirror(cgmath::vec3(-0.4, -0.6, 0.0), 1.5); // debug mirror
+
+
+        for i in 0..1 {
+            // world.push_mirror(cgmath::vec3(0.0, i as f32 / 24.0, 0.0), i as f32 / 6.28); // debug mirror
+        }
 
         let renderer = Renderer::new();
 
@@ -61,13 +67,16 @@ impl Application {
 
 
 
-        self.world.mirrors[0].update(cgmath::vec3(-0.3, 0.3, 0.0), self.slider_val * 3.14 + 0.4);
+        // self.world.mirrors[0].update(cgmath::vec3(0.0, 0.0, 0.0), self.slider_val * 6.28);
         self.world.io(&mut self.glfw, &mut self.window);
     }
 
     pub fn raycaster(ray_caster: Arc<Mutex<RayCaster>>, mirrors: Vec<crate::environment::Mirror>) {
-        // for i in -8..8 {
+        // for i in -16..16 {
             ray_caster.lock().unwrap().cast((0.0, 400.0), 0.0, 400.0, 0, None);
+            // if i % 8 == 0 {
+                // std::thread::sleep(std::time::Duration::from_millis(1));
+            // }
         // }
 
         ray_caster.lock().unwrap().update(&mirrors);
@@ -104,5 +113,5 @@ impl Application {
 
 
 fn rand_vec3() -> cgmath::Vector3<f32> {
-    cgmath::vec3(crate::util::Math::random(-1.0, 1.0), crate::util::Math::random(-1.0, 1.0), crate::util::Math::random(-1.0, 1.0))
+    cgmath::vec3(crate::util::Math::random(0.0, 1.0), crate::util::Math::random(0.0, 1.0), crate::util::Math::random(0.0, 1.0))
 }

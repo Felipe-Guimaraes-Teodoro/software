@@ -1,9 +1,8 @@
-use imgui::Ui;
 use imgui::DrawListMut;
 use crate::{environment::Mirror, util::Math};
 
 const NUM_ITERATIONS: i32 = 256;
-const MAX_LINES: usize = 256;
+const MAX_LINES: usize = 64;
 
 pub struct RayCaster {
     mirrors: Vec<Mirror>,
@@ -31,7 +30,8 @@ impl RayCaster {
         let end_y = start_pos.1 + length * ray_dir_y;
         let end_pos = (end_x, end_y);
 
-        if d > 128 { return } 
+        // dbg!(d);
+        if d > 12 { return } 
 
         let c = Self::check_collision(&self.mirrors, start_pos, previous_mirror, end_pos);
 
@@ -76,6 +76,15 @@ impl RayCaster {
         previous_mirror: Option<Mirror>,
         end_pos: (f32, f32)) -> CollisionResult 
     {
+        //  IDEAS FOR FIXING:
+        // 1. let visited_mirrors: Vec<Mirror> = vec![];
+        // sort mirrors by raycast distance and return closest 
+        //
+        // 2. space partinioning
+        //
+        // 3. rewrite the whole physics and make it so that mirrors work the way they should for
+        //    every shape
+
         for mirror in mirrors {
             if previous_mirror.is_some() {
                 if *mirror == previous_mirror.unwrap() {
@@ -129,12 +138,11 @@ impl RayCaster {
             line.build();
         }
 
-        if self.draw_list.len() > 256 {
+        if self.draw_list.len() > MAX_LINES {
             for _i in 0..32 {
                 self.draw_list.remove(0);
             }
         }
-        // self.draw_list.clear();
     }
 }
 
