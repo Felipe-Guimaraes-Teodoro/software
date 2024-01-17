@@ -1,5 +1,6 @@
 use glfw::*;
 use crate::application::*;
+use crate::physics::GLOBAL_CASTER;
 
 pub fn run() {
     // initialize window
@@ -26,15 +27,15 @@ pub fn run() {
 
     while !app.window_mut().should_close() {
         app.ui();
-        let raycaster = app.ray_caster.clone();
-        let mirrors = app.world.mirrors.clone();
-        crate::GLOBAL_POOL.execute(move || {
-            if raycaster.lock().unwrap().can_draw() {
-                Application::raycaster(raycaster, mirrors);
-            } else {
-                // nothing
-            }
-        });
+        // let raycaster = GLOBAL_CASTER.clone();
+        // let mirrors = app.world.mirrors.clone();
+        // crate::GLOBAL_POOL.execute(move || {
+        //     if raycaster.lock().unwrap().can_draw() {
+        //         Application::raycaster(raycaster, mirrors);
+        //     } else {
+        //         // nothing
+        //     }
+        // });
         app.update();
         unsafe {
             app.render();

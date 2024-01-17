@@ -36,32 +36,25 @@ impl Math {
 impl Geometry {
     pub fn in_point_inside_polygon2d(x: f32, y: f32, polygon: &Vec<f32>) -> bool {
         let mut inside = false;
+        let num_points = polygon.len() / 2;
 
-        let points: Vec<Point> = polygon
-            .chunks(2)
-            .map(|points| Point {
-                y: points[0] + 400.0,
-                x: points[1] + 400.0,
-            })
-            .collect();
+        let mut j = num_points - 1;
 
-        let mut j = points.len() - 1;
+        for i in 0..num_points {
+            let p1_y = polygon[i * 2] + 400.0;
+            let p1_x = polygon[i * 2 + 1] + 400.0;
 
-        for i in 0..points.len() {
-            let p1 = &points[i];
-            let p2 = &points[j];
+            let p2_y = polygon[j * 2] + 400.0;
+            let p2_x = polygon[j * 2 + 1] + 400.0;
 
-            if (p1.y > y) != (p2.y > y)
-                && x < p1.x + (p2.x - p1.x) * (y - p1.y) / (p2.y - p1.y)
-            {
+            if (p1_y > y) != (p2_y > y) && x < p1_x + (p2_x - p1_x) * (y - p1_y) / (p2_y - p1_y) {
                 inside = !inside;
             }
 
             j = i;
         }
-        
 
-        return inside;
+        inside
     }
 
     pub fn rotate_polygon2d(polygon: &mut Vec<f32>, angle: f32, pivot: Vec<f32>) -> &Vec<f32> {

@@ -22,6 +22,7 @@ fn main() {
     //     event_loop::run();
     // });
     
+    physics::run(); // create a physics thread that runs concurrently with the main   
     event_loop::run();
 
     // let _ = x.join();

@@ -1,13 +1,34 @@
 use imgui::DrawListMut;
 use crate::{environment::Mirror, util::Math};
+use std::sync::{Arc, Mutex};
+use once_cell::sync::Lazy;
 
 const NUM_ITERATIONS: i32 = 256;
-const MAX_LINES: usize = 64;
+const MAX_LINES: usize = 1024;
+
+pub static GLOBAL_CASTER: Lazy<Arc<Mutex<RayCaster>>> = Lazy::new(|| {
+    Arc::new(Mutex::new(RayCaster::new()))
+});
+
+pub fn run() {
+    std::thread::spawn(move || {
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(32));
+            let ray_caster = GLOBAL_CASTER.clone();
+            let mut locked_caster = ray_caster.lock().unwrap();
+            // locked_caster.update(&vec![]);
+            if locked_caster.can_draw() {
+                locked_caster.cast((0.0, 400.0), 0.0, 400.0, 0, None);
+            }
+        }
+    });
+}
 
 pub struct RayCaster {
     mirrors: Vec<Mirror>,
     draw_list: Vec<[f32; 4]>,
 }
+
 impl RayCaster {
     pub fn new() -> Self {
         Self {
@@ -15,6 +36,8 @@ impl RayCaster {
             draw_list: vec![],
         }
     }
+
+    
 
     pub fn can_draw(&mut self) -> bool {
         if self.draw_list.len() > MAX_LINES {

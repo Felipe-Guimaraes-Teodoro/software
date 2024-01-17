@@ -53,7 +53,9 @@ impl Application {
 
         let fdl = frame.get_foreground_draw_list();
 
-        self.ray_caster.lock().unwrap().draw_lines(&fdl);
+        let caster_handle = crate::physics::GLOBAL_CASTER.clone();
+        let mut locked_caster = caster_handle.lock().unwrap();
+        locked_caster.draw_lines(&fdl);
         self.world.debug_mirrors(&fdl);
 
         let _slider = frame.slider("slider", -0.5, 0.5, &mut self.slider_val);
@@ -65,7 +67,10 @@ impl Application {
         self.renderer.camera.update();
         self.renderer.camera.input(&mut self.window, &self.glfw);
 
-
+        let caster_handle = crate::physics::GLOBAL_CASTER.clone();
+        let mut locked_caster = caster_handle.lock().unwrap();
+        let mirrors  =self.world.mirrors.clone();
+        locked_caster.update(&mirrors);
 
         // self.world.mirrors[0].update(cgmath::vec3(0.0, 0.0, 0.0), self.slider_val * 6.28);
         self.world.io(&mut self.glfw, &mut self.window);
