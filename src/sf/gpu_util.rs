@@ -160,7 +160,7 @@ impl Buffer<(&Vec<f32>, &Vec<i32>)> for RVertexBufferIndexed {
 
 impl Buffer<(&Vec<f32>, &Vec<i32>, &[u32])> for RVertexBufferTextured {
     fn new(data: (&Vec<f32>, &Vec<i32>, &[u32])) -> Self {
-        todo!()
+        todo!();
     }
 
     fn update(&mut self, new_verts: (&Vec<f32>, &Vec<i32>, &[u32])) {

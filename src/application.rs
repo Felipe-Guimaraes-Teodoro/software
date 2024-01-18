@@ -1,6 +1,7 @@
 use glfw::*;
 use gl::*;
 use crate::physics::RayCaster;
+use crate::ui::Hud;
 
 use crate::{sf::*, ui::Imgui};
 use crate::environment::World;
@@ -13,15 +14,15 @@ pub struct Application {
     pub ui: Imgui,
     renderer: Renderer,
     pub world: World,
-    pub ray_caster: Arc<Mutex<RayCaster>>,
+    hud: Hud, 
 
     slider_val: f32,
 }
 
 impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
-        let mut world = World::new();
-        let ray_caster = RayCaster::new();
+        let world = World::new();
+        let hud = Hud::new();
         // world.push_mirror(cgmath::vec3(0.0, -0.5, 0.0), 0.0); // debug mirror
         // world.push_mirror(cgmath::vec3(-0.1, 0.1, 0.0), -0.6); // debug mirror
         // world.push_mirror(cgmath::vec3(-0.4, -0.6, 0.0), 1.5); // debug mirror
@@ -42,7 +43,7 @@ impl Application {
             ui,
             renderer,
             world,
-            ray_caster: Arc::new(Mutex::new(ray_caster)),
+            hud,
 
             slider_val: 0.0,
         } 
@@ -89,7 +90,7 @@ impl Application {
 
     pub unsafe fn render(&mut self) {
         ClearColor(0.0, 0.0, 0.0, 0.0); 
-        Clear(COLOR_BUFFER_BIT);
+        // Clear(COLOR_BUFFER_BIT);
 
         self.renderer.draw(); 
         self.renderer.draw_world(&self.world);

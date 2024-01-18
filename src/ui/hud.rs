@@ -1,6 +1,6 @@
 use crate::sf::Drawable;
 
-struct Hud {
+pub struct Hud {
     // hud is a textured quad on the screen
     // it shows the user the current tool
     // they're using by utilizing another 
