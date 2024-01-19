@@ -23,6 +23,10 @@ impl TexturedQuad {
             buf,
         }
     }
+
+    // pub fn clear(&mut self) {
+    //     self.buf.clear();
+    // } 
 }
 
 
