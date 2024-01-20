@@ -90,7 +90,7 @@ impl Application {
 
     pub unsafe fn render(&mut self) {
         ClearColor(0.0, 0.0, 0.0, 0.0); 
-        // Clear(COLOR_BUFFER_BIT);
+        Clear(COLOR_BUFFER_BIT);
 
         self.renderer.draw(); 
         self.renderer.draw_world(&self.world);

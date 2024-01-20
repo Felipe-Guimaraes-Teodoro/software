@@ -1,5 +1,6 @@
 use gl::{*, types::*};
 use std::{mem, ptr, ffi::c_void};
+use std::path::Path;
 
 pub trait Buffer<D> {
     fn new(data: D) -> Self;
@@ -158,12 +159,72 @@ impl Buffer<(&Vec<f32>, &Vec<i32>)> for RVertexBufferIndexed {
     }
 }
 
-impl Buffer<(&Vec<f32>, &Vec<i32>, &[u32])> for RVertexBufferTextured {
-    fn new(data: (&Vec<f32>, &Vec<i32>, &[u32])) -> Self {
-        todo!();
+impl Buffer<(&Vec<f32>, &Vec<i32>, &str)> for RVertexBufferTextured {
+    fn new(data: (&Vec<f32>, &Vec<i32>, &str)) -> Self {
+        let (mut VBO, mut VAO, mut EBO, mut TEX_ID) = (0, 0, 0, 0);
+
+        unsafe {
+
+        GenVertexArrays(1, &mut VAO);
+        GenBuffers(1, &mut VBO);
+        GenBuffers(1, &mut EBO);
+
+        BindVertexArray(VAO);
+
+        BindBuffer(gl::ARRAY_BUFFER, VBO);
+        BufferData(gl::ARRAY_BUFFER,
+                       (data.0.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                       &data.0[0] as *const f32 as *const c_void,
+                       gl::STATIC_DRAW);
+
+        BindBuffer(gl::ELEMENT_ARRAY_BUFFER, EBO);
+        BufferData(gl::ELEMENT_ARRAY_BUFFER,
+                       (data.1.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                       &data.1[0] as *const i32 as *const c_void,
+                       gl::STATIC_DRAW);
+
+        let stride = 8 * mem::size_of::<GLfloat>() as GLsizei;
+        // position attribute
+        VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, stride, ptr::null());
+        EnableVertexAttribArray(0);
+        // color attribute
+        VertexAttribPointer(1, 3, gl::FLOAT, gl::FALSE, stride, (3 * mem::size_of::<GLfloat>()) as *const c_void);
+        EnableVertexAttribArray(1);
+        // texture coord attribute
+        VertexAttribPointer(2, 2, gl::FLOAT, gl::FALSE, stride, (6 * mem::size_of::<GLfloat>()) as *const c_void);
+        EnableVertexAttribArray(2);
+
+        GenTextures(1, &mut TEX_ID);
+        BindTexture(TEXTURE_2D, TEX_ID); 
+        TexParameteri(TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32); 
+        TexParameteri(TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+        TexParameteri(TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+        TexParameteri(TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        let img = image::open(&Path::new(data.2)).expect("failed to load image");
+        let data = img.as_bytes().to_vec();
+
+        TexImage2D(gl::TEXTURE_2D,
+           0,
+           RGB as i32,
+           img.width() as i32,
+           img.height() as i32,
+           0,
+           RGB,
+           UNSIGNED_BYTE,
+           &data[0] as *const u8 as *const c_void);
+        GenerateMipmap(TEXTURE_2D);
+
+        } // unsafe 
+
+        Self {
+            vao_id: VAO,
+            vbo_id: VBO,
+            ebo_id: EBO,
+            texture_id: TEX_ID, 
+        }
     }
 
-    fn update(&mut self, new_verts: (&Vec<f32>, &Vec<i32>, &[u32])) {
+    fn update(&mut self, new_data: (&Vec<f32>, &Vec<i32>, &str)) {
         todo!();
     }
 

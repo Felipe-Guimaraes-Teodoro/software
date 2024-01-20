@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
 
 const NUM_ITERATIONS: i32 = 256;
-const MAX_LINES: usize = 1024;
+const MAX_LINES: usize = 64;
 
 pub static GLOBAL_CASTER: Lazy<Arc<Mutex<RayCaster>>> = Lazy::new(|| {
     Arc::new(Mutex::new(RayCaster::new()))

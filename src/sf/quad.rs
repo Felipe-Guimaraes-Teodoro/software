@@ -13,11 +13,20 @@ pub struct TexturedQuad {
 
 impl TexturedQuad {
     pub fn new() -> Self {
-        let verts = vec![];
-        let inds = vec![];
-        let image = &[0]; // &[u8]
+        let verts = vec![
+            // positions       // colors        // texture coords
+             0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0, // top right
+             0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0, // bottom right
+            -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0, // bottom left
+            -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0  // top left
+        ];
+        let inds = vec![
+            0, 1, 3,  // first Triangle
+            1, 2, 3   // second Triangle
+        ];
+        let image = "path/to/image.png"; // Vec<u8>
 
-        let buf = RVertexBufferTextured::new((&verts, &inds, image));
+        let buf = RVertexBufferTextured::new((&verts, &inds, &image));
 
         Self {
             buf,
