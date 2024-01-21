@@ -23,14 +23,6 @@ impl Application {
     pub fn new(mut window: PWindow, glfw: Glfw) -> Self {
         let world = World::new();
         let hud = Hud::new();
-        // world.push_mirror(cgmath::vec3(0.0, -0.5, 0.0), 0.0); // debug mirror
-        // world.push_mirror(cgmath::vec3(-0.1, 0.1, 0.0), -0.6); // debug mirror
-        // world.push_mirror(cgmath::vec3(-0.4, -0.6, 0.0), 1.5); // debug mirror
-
-
-        for i in 0..1 {
-            // world.push_mirror(cgmath::vec3(0.0, i as f32 / 24.0, 0.0), i as f32 / 6.28); // debug mirror
-        }
 
         let renderer = Renderer::new();
 

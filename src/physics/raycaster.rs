@@ -82,7 +82,7 @@ impl RayCaster {
 
                 self.draw_list.push([start_pos.0, start_pos.1, x, y]);
 
-                // bigger penalty for when the cast hits void
+                // bigger depth penalty for when the cast hits void
                 self.cast((x, y), angle, 400.0, d+5, c.mirror);
             }
         }
@@ -99,14 +99,8 @@ impl RayCaster {
         previous_mirror: Option<Mirror>,
         end_pos: (f32, f32)) -> CollisionResult 
     {
-        //  IDEAS FOR FIXING:
-        // 1. let visited_mirrors: Vec<Mirror> = vec![];
-        // sort mirrors by raycast distance and return closest 
-        //
-        // 2. space partinioning
-        //
-        // 3. rewrite the whole physics and make it so that mirrors work the way they should for
-        //    every shape
+        // (CollisionResult, distance from ray origin);
+        let mut results: Vec<(CollisionResult, i32)> = vec![];
 
         for mirror in mirrors {
             if previous_mirror.is_some() {
@@ -124,20 +118,35 @@ impl RayCaster {
                 let x = c_pos.0;
                 let y = c_pos.1;
                 if mirror.in_bounds(x, y, mirror.pos.into()) {
-                    return CollisionResult {
-                        col_type: CollisionType::Mirror, 
-                        mirror: Some(*mirror), 
-                        end_pos: (x, y)
-                    };
+                    results.push(
+                        (CollisionResult {
+                            col_type: CollisionType::Mirror,
+                            mirror: Some(*mirror),
+                            end_pos: (x, y)
+                        }, 
+                        i)
+                    );
+                    break;
                 }
-
             }
         }
+        
+        let closest = results
+            .iter()
+            .min_by_key(|&(_, distance)| distance);
 
-        CollisionResult { 
-            col_type: CollisionType::Void, 
-            mirror: None, 
-            end_pos,
+        match closest {
+            Some(result) => {
+                return result.0
+            }
+            None => {
+                CollisionResult { 
+                    col_type: CollisionType::Void, 
+                    mirror: None, 
+                    end_pos,
+                }
+            }
+
         }
     }
 
@@ -176,6 +185,7 @@ pub enum CollisionType {
     Diffuse,
 }
 
+#[derive(Debug, Copy, Clone)]
 pub struct CollisionResult {
     col_type: CollisionType,
     mirror: Option<Mirror>,
