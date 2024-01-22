@@ -3,7 +3,8 @@ use crate::{environment::Mirror, util::Math};
 use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
 
-const NUM_ITERATIONS: i32 = 256;
+const NUM_ITERATIONS: i32 = 128;
+const MAX_DEPTH: u32 = 32;
 const MAX_LINES: usize = 64;
 
 pub static GLOBAL_CASTER: Lazy<Arc<Mutex<RayCaster>>> = Lazy::new(|| {
@@ -11,14 +12,17 @@ pub static GLOBAL_CASTER: Lazy<Arc<Mutex<RayCaster>>> = Lazy::new(|| {
 });
 
 pub fn run() {
+    let global_caster = Arc::clone(&GLOBAL_CASTER);
     std::thread::spawn(move || {
         loop {
             std::thread::sleep(std::time::Duration::from_millis(32));
-            let ray_caster = GLOBAL_CASTER.clone();
-            let mut locked_caster = ray_caster.lock().unwrap();
-            // locked_caster.update(&vec![]);
-            if locked_caster.can_draw() {
-                locked_caster.cast((0.0, 400.0), 0.0, 400.0, 0, None);
+
+            if let Ok(mut locked_caster) = global_caster.lock() {
+                // locked_caster.update(&vec![]);
+                //
+                if locked_caster.can_draw() {
+                    locked_caster.cast((0.0, 400.0), 0.0, 400.0, 0, None);
+                }
             }
         }
     });
@@ -53,8 +57,7 @@ impl RayCaster {
         let end_y = start_pos.1 + length * ray_dir_y;
         let end_pos = (end_x, end_y);
 
-        // dbg!(d);
-        if d > 12 { return } 
+        if d > MAX_DEPTH { return } 
 
         let c = Self::check_collision(&self.mirrors, start_pos, previous_mirror, end_pos);
 
@@ -101,18 +104,17 @@ impl RayCaster {
     {
         // (CollisionResult, distance from ray origin);
         let mut results: Vec<(CollisionResult, i32)> = vec![];
+        let iter_mirrors = &mut mirrors.clone();
 
-        for mirror in mirrors {
+        for i in 0..mirrors.len() {
             if previous_mirror.is_some() {
-                if *mirror == previous_mirror.unwrap() {
-                    return CollisionResult { 
-                        col_type: CollisionType::Void, 
-                        mirror: Some(*mirror), 
-                        end_pos, 
-                    };
+                if mirrors[i] == previous_mirror.unwrap() {
+                    iter_mirrors.remove(i);   
                 }
             }
+        }
 
+        for mirror in iter_mirrors {
             for i in 0..NUM_ITERATIONS {
                 let c_pos = Self::lerp(start_pos, end_pos, i as f32 / NUM_ITERATIONS as f32);
                 let x = c_pos.0;
@@ -134,6 +136,7 @@ impl RayCaster {
         let closest = results
             .iter()
             .min_by_key(|&(_, distance)| distance);
+
 
         match closest {
             Some(result) => {

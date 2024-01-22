@@ -3,10 +3,13 @@ use crate::sf::Drawable;
 use crate::util::SecondOrderDynamics;
 
 use cgmath::*;
-use std::sync::{Arc, RwLock};
 
+use std::sync::{Arc, Mutex};
+
+#[derive(Debug, PartialEq)]
 enum State {
     PlacingMirror,
+    JustPlacedMirror,
     None,
 }
 
@@ -15,6 +18,7 @@ pub struct World {
     sod_controller: SecondOrderDynamics,
     mirror_ammount: usize,
     state: State,
+    debounce: Arc<Mutex<bool>>,
     mouse_angle: f32,
 }
 
@@ -28,6 +32,7 @@ impl World {
             sod_controller,
             mirror_ammount: 0,
             state: State::None,
+            debounce: Arc::new(Mutex::new(true)),
             mouse_angle: 0.0,
         }
     }
@@ -43,7 +48,7 @@ impl World {
     }
 
     pub fn io(&mut self, glfw: &mut glfw::Glfw, window: &mut glfw::Window) {
-        if window.get_key(glfw::Key::Num1) == glfw::Action::Press {
+        if window.get_key(glfw::Key::Num1) == glfw::Action::Press && self.state == State::None{
             self.state = State::PlacingMirror;
         } else if window.get_key(glfw::Key::Num2) == glfw::Action::Press {
             self.state = State::None;
@@ -54,7 +59,6 @@ impl World {
         } else if window.get_key(glfw::Key::J) == glfw::Action::Press {
             self.mouse_angle -= 0.1;
         }
-
 
         match self.state {
             State::PlacingMirror => {
@@ -68,11 +72,16 @@ impl World {
                 // dbg!(self.viewing_mirror.pos);
 
                 if window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Press {
-                    self.state = State::None;
+                    self.state = State::JustPlacedMirror;
                     self.push_mirror([x, y, 0.0].into(), self.mouse_angle);
                     self.mirrors[0].pos = [-5.0, -5.0, 0.0].into(); 
                 }     
             },
+            State::JustPlacedMirror => { 
+                if window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Release {
+                    self.state = State::None;
+                }
+            }
 
             State::None => {},
         }
