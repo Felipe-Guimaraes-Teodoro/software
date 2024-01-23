@@ -113,4 +113,8 @@ impl SecondOrderDynamics {
 
         self.y
     }
+
+    pub fn set_starting_point(&mut self, x: Vector3<f32>) {
+        todo!();
+    }
 }

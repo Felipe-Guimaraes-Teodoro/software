@@ -114,6 +114,9 @@ impl RayCaster {
             }
         }
 
+        //todo: 
+        // instead of doing this super slow lerp iterator check on mirror collision 
+        // maybe add line_intersect_poly2d() on util::geometry...
         for mirror in iter_mirrors {
             for i in 0..NUM_ITERATIONS {
                 let c_pos = Self::lerp(start_pos, end_pos, i as f32 / NUM_ITERATIONS as f32);
