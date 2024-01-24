@@ -110,6 +110,10 @@ impl World {
             State::None => {},
         }
     }
+
+    pub fn scroll_wheel(&mut self, v: f32) {
+        self.mouse_angle += v / (8.0 * 3.1415);
+    } 
 }
 
 // implement world draw method

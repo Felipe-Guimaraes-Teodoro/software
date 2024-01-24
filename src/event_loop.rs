@@ -14,6 +14,7 @@ pub fn run() {
         .expect("Failed to create GLFW window.");
 
     window.set_key_polling(true);
+    window.set_scroll_polling(true);
     window.set_cursor_pos_polling(true);
     window.set_mouse_button_polling(true);
     window.set_framebuffer_size_polling(true);
@@ -69,6 +70,7 @@ fn handle_window_event(app: &mut Application, event: glfw::WindowEvent) {
         },
         WindowEvent::Scroll(x, y) => {
             app.ui.on_mouse_scroll(x as f32, y as f32);
+            app.world.scroll_wheel(y as f32); 
         },
         WindowEvent::CursorPos(x, y) => {
             let (x, y) = (x as f32, y as f32);
