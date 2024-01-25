@@ -17,6 +17,9 @@ pub struct Application {
     hud: Hud, 
 
     slider_val: f32,
+
+    resolution_x: f32,
+    resolution_y: f32,
 }
 
 impl Application {
