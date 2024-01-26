@@ -54,7 +54,8 @@ pub fn run() {
 fn handle_window_event(app: &mut Application, event: glfw::WindowEvent) {
     match event {
         WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
-            app.window_mut().set_should_close(true)
+            // app.window_mut().set_should_close(true)
+            // open menu
         },
 
         WindowEvent::Key(Key::LeftAlt, _, Action::Press, _) => {
@@ -79,6 +80,10 @@ fn handle_window_event(app: &mut Application, event: glfw::WindowEvent) {
         },
 
         WindowEvent::FramebufferSize(width, height) => {
+            app.set_framebuffer_size(width, height);
+            let global_caster_clone = crate::physics::GLOBAL_CASTER.clone();
+            let mut global_caster = global_caster_clone.lock().unwrap();
+            global_caster.set_framebuffer_size(width as f32, height as f32);
             unsafe {
                 gl::Viewport(0, 0, width, height);
             }

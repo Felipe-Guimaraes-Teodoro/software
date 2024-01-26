@@ -34,18 +34,18 @@ impl Math {
 }
 
 impl Geometry {
-    pub fn in_point_inside_polygon2d(x: f32, y: f32, polygon: &Vec<f32>) -> bool {
+    pub fn in_point_inside_polygon2d(x: f32, y: f32, polygon: &Vec<f32>, w: f32, h: f32) -> bool {
         let mut inside = false;
         let num_points = polygon.len() / 2;
 
         let mut j = num_points - 1;
 
         for i in 0..num_points {
-            let p1_y = polygon[i * 2] + 400.0;
-            let p1_x = polygon[i * 2 + 1] + 400.0;
+            let p1_y = polygon[i * 2] + h / 2.0;
+            let p1_x = polygon[i * 2 + 1] + w / 2.0;
 
-            let p2_y = polygon[j * 2] + 400.0;
-            let p2_x = polygon[j * 2 + 1] + 400.0;
+            let p2_y = polygon[j * 2] + h / 2.0;
+            let p2_x = polygon[j * 2 + 1] + w / 2.0;
 
             if (p1_y > y) != (p2_y > y) && x < p1_x + (p2_x - p1_x) * (y - p1_y) / (p2_y - p1_y) {
                 inside = !inside;

@@ -19,6 +19,9 @@ pub struct World {
     sod_controller: SecondOrderDynamics,
     state: State,
     mouse_angle: f32,
+
+    width: f32,
+    height: f32,
 }
 
 impl World {
@@ -31,6 +34,9 @@ impl World {
             sod_controller,
             state: State::None,
             mouse_angle: 0.0,
+
+            width: 800.0,
+            height: 800.0,
         }
     }
 
@@ -40,7 +46,7 @@ impl World {
 
     pub fn debug_mirrors(&mut self, fdl: &imgui::DrawListMut) {
         for mirror in &self.mirrors {
-            fdl.add_text([(mirror.pos.x * 400.0) - 800.0, (mirror.pos.y * 400.0) - 800.0], [1.0, 1.0, 1.0], "str");
+            fdl.add_text([(mirror.pos.x * (self.width / 2.0)) - self.width, (mirror.pos.y * (self.height / 2.0)) - self.height], [1.0, 1.0, 1.0], "str");
         }
     }
 
@@ -62,7 +68,7 @@ impl World {
             let y = window.get_cursor_pos().1 as f32;
 
             for i in 0..self.mirrors.len() {
-                if self.mirrors[i].in_bounds(x, y, self.mirrors[i].pos) {
+                if self.mirrors[i].in_bounds(x, y, self.mirrors[i].pos, self.width, self.height) {
                     // self.sod_controller.set_starting_point(self.mirrors[i].pos);
                     self.mouse_angle = self.mirrors[i].angle;
                     self.state = State::HoldingMirror(i);
@@ -73,8 +79,8 @@ impl World {
 
         match self.state {
             State::PlacingMirror => {
-                let x = (((window.get_cursor_pos().0 as f32 * 2.0) - 1.0) / 800.0) - 1.0;
-                let y = (((-window.get_cursor_pos().1 as f32 * 2.0) - 1.0) / 800.0) + 1.0;
+                let x = (((window.get_cursor_pos().0 as f32 * 2.0) - 1.0) / self.width) - 1.0;
+                let y = (((-window.get_cursor_pos().1 as f32 * 2.0) - 1.0) / self.height) + 1.0;
 
                 let yr = self.sod_controller.update(0.1, vec3(x, y, 0.0));
 
@@ -94,8 +100,8 @@ impl World {
             }
 
             State::HoldingMirror(idx) => {
-                let x = (((window.get_cursor_pos().0 as f32 * 2.0) - 1.0) / 800.0) - 1.0;
-                let y = (((-window.get_cursor_pos().1 as f32 * 2.0) - 1.0) / 800.0) + 1.0;
+                let x = (((window.get_cursor_pos().0 as f32 * 2.0) - 1.0) / self.width) - 1.0;
+                let y = (((-window.get_cursor_pos().1 as f32 * 2.0) - 1.0) / self.height) + 1.0;
 
                 let yr = self.sod_controller.update(0.1, vec3(x, y, 0.0));
 
@@ -114,13 +120,18 @@ impl World {
     pub fn scroll_wheel(&mut self, v: f32) {
         self.mouse_angle += v / (8.0 * 3.1415);
     } 
+
+    pub fn set_framebuffer_size(&mut self, width: f32, height: f32) {
+        self.width = width;
+        self.height = height;
+    }
 }
 
 // implement world draw method
 impl Renderer {
     pub unsafe fn draw_world(&mut self, world: &World) {
         for mirror in &world.mirrors {
-            mirror.draw(&self.mirror_shader);
+            mirror.draw(&self.mirror_shader, world.width, world.height);
         }
     }
 }

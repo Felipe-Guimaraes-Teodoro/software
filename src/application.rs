@@ -18,8 +18,8 @@ pub struct Application {
 
     slider_val: f32,
 
-    resolution_x: f32,
-    resolution_y: f32,
+    width: i32,
+    height: i32,
 }
 
 impl Application {
@@ -41,6 +41,9 @@ impl Application {
             hud,
 
             slider_val: 0.0,
+
+            width: 800,
+            height: 800,
         } 
     }
 
@@ -72,17 +75,6 @@ impl Application {
         self.world.io(&mut self.glfw, &mut self.window);
     }
 
-    pub fn raycaster(ray_caster: Arc<Mutex<RayCaster>>, mirrors: Vec<crate::environment::Mirror>) {
-        // for i in -16..16 {
-            ray_caster.lock().unwrap().cast((0.0, 400.0), 0.0, 400.0, 0, None);
-            // if i % 8 == 0 {
-                // std::thread::sleep(std::time::Duration::from_millis(1));
-            // }
-        // }
-
-        ray_caster.lock().unwrap().update(&mirrors);
-    }
-
     pub unsafe fn render(&mut self) {
         ClearColor(0.0, 0.0, 0.0, 0.0); 
         Clear(COLOR_BUFFER_BIT);
@@ -103,6 +95,13 @@ impl Application {
     pub fn mouse(&mut self, x: f32, y:f32) {
         self.renderer.camera.mouse_callback(x, y, &self.window);
     } 
+
+    pub fn set_framebuffer_size(&mut self, width: i32, height: i32) {
+        self.width = width;
+        self.height = height;
+
+        self.world.set_framebuffer_size(width as f32, height as f32);
+    }
 }
 // fallen was here
 // GOUD too my G

@@ -14,22 +14,27 @@ pub const MIRROR_VS: &str = r#"
     #version 330 core
     layout (location = 0) in vec3 aPos;
 
-    // uniform mat4 view;
-    // uniform mat4 proj;
-    // uniform mat4 model;
     uniform vec3 pos;
     uniform float angle;
 
+    uniform float width;
+    uniform float height;
+
     void main() {
-        // gl_Position = proj * view * vec4(aPos, 1.0);
-        
+        float aspectRatio = width / height;
+
+        float scaleX = 1.0 / aspectRatio;
+        float scaleY = 1.0;
+
         mat3 rot_mat = mat3(
             cos(angle), -sin(angle), 0,
             sin(angle), cos(angle), 0,
             0, 0, 0
         );
 
-        gl_Position = vec4(aPos * rot_mat + pos, 1.0);
+        vec3 scaledPos = vec3(aPos.x * scaleX, aPos.y * scaleY, aPos.z);
+
+        gl_Position = vec4(scaledPos * rot_mat + pos, 1.0);
     }
 "#;
 
@@ -81,11 +86,13 @@ impl Mirror {
         }
     }           
 
-    pub unsafe fn draw(&self, shader: &Shader) {
+    pub unsafe fn draw(&self, shader: &Shader, w: f32, h: f32) {
         shader.use_shader();
         shader.uniform_vec3f(cstr!("pos"), &self.pos);
         shader.uniform_1f(cstr!("angle"), self.angle);
         shader.uniform_vec3f(cstr!("color"), &vec3(0.51, 0.55, 0.8));
+        shader.uniform_1f(cstr!("width"), w);
+        shader.uniform_1f(cstr!("height"), h);
         BindVertexArray(self.buf.vao_id);
         DrawElements(TRIANGLES, 6, UNSIGNED_INT, std::ptr::null());
         BindVertexArray(0);
@@ -96,19 +103,19 @@ impl Mirror {
         self.angle = angle;
     }
 
-    pub fn in_bounds(&self, x: f32, y: f32, ofs: Vector3<f32>) -> bool {
-        let (x_pos, y_pos) = (ofs.x * 400.0, ofs.y * 400.0);
+    pub fn in_bounds(&self, x: f32, y: f32, ofs: Vector3<f32>, w: f32, h: f32) -> bool {
+        let (x_pos, y_pos) = (ofs.x * (w / 2.0), ofs.y * (h / 2.0));
 
         let mut verts = vec![
-            (0.01 * 400.0) + x_pos, (0.5 * 400.0) + y_pos, // top right
-            (0.01 * 400.0) + x_pos, (-0.5 * 400.0) + y_pos, // bottom right
-            (-0.01 * 400.0) + x_pos, (-0.5 * 400.0) + y_pos, // bottom left 
-            (-0.01 * 400.0) + x_pos, (0.5 * 400.0) + y_pos, // top left 
+            (0.01 * w / 2.0) + x_pos, (0.5 * h / 2.0) + y_pos, // top right
+            (0.01 * w / 2.0) + x_pos, (-0.5 * h / 2.0) + y_pos, // bottom right
+            (-0.01 * w / 2.0) + x_pos, (-0.5 * h / 2.0) + y_pos, // bottom left 
+            (-0.01 * w / 2.0) + x_pos, (0.5 * h / 2.0) + y_pos, // top left 
         ];
 
         let new_verts = Geometry::rotate_polygon2d(&mut verts, self.angle, vec![x_pos, y_pos]);
         
-        Geometry::in_point_inside_polygon2d(x, y, new_verts)
+        Geometry::in_point_inside_polygon2d(x, y, new_verts, w, h)
     }
 
     // pub fn cleanup(&mut self) { self.buf.clear(); }

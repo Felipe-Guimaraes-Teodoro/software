@@ -18,10 +18,11 @@ pub fn run() {
             std::thread::sleep(std::time::Duration::from_millis(32));
 
             if let Ok(mut locked_caster) = global_caster.lock() {
+                let height = locked_caster.height;
                 // locked_caster.update(&vec![]);
                 //
                 if locked_caster.can_draw() {
-                    locked_caster.cast((0.0, 400.0), 0.0, 400.0, 0, None);
+                    locked_caster.cast((0.0, height / 2.0), 0.0, 400.0, 0, None);
                 }
             }
         }
@@ -31,6 +32,9 @@ pub fn run() {
 pub struct RayCaster {
     mirrors: Vec<Mirror>,
     draw_list: Vec<[f32; 4]>,
+
+    width: f32,
+    height: f32,
 }
 
 impl RayCaster {
@@ -38,10 +42,16 @@ impl RayCaster {
         Self {
             mirrors: vec![],
             draw_list: vec![],
+
+            width: 800.0,
+            height: 800.0,
         }
     }
 
-    
+    pub fn set_framebuffer_size(&mut self, width: f32, height: f32) {
+        self.height = height;
+        self.width = width;
+    }
 
     pub fn can_draw(&mut self) -> bool {
         if self.draw_list.len() > MAX_LINES {
@@ -59,7 +69,7 @@ impl RayCaster {
 
         if d > MAX_DEPTH { return } 
 
-        let c = Self::check_collision(&self.mirrors, start_pos, previous_mirror, end_pos);
+        let c = Self::check_collision(self.width, self.height, &self.mirrors, start_pos, previous_mirror, end_pos);
 
         match c.col_type {
             CollisionType::Mirror => {
@@ -97,10 +107,11 @@ impl RayCaster {
     }
 
     pub fn check_collision
-        (mirrors: &Vec<Mirror>,
-        start_pos: (f32, f32), 
-        previous_mirror: Option<Mirror>,
-        end_pos: (f32, f32)) -> CollisionResult 
+        (w: f32, h: f32,
+         mirrors: &Vec<Mirror>,
+         start_pos: (f32, f32), 
+         previous_mirror: Option<Mirror>,
+         end_pos: (f32, f32)) -> CollisionResult 
     {
         // (CollisionResult, distance from ray origin);
         let mut results: Vec<(CollisionResult, i32)> = vec![];
@@ -122,7 +133,7 @@ impl RayCaster {
                 let c_pos = Self::lerp(start_pos, end_pos, i as f32 / NUM_ITERATIONS as f32);
                 let x = c_pos.0;
                 let y = c_pos.1;
-                if mirror.in_bounds(x, y, mirror.pos.into()) {
+                if mirror.in_bounds(x, y, mirror.pos.into(), w, h) {
                     results.push(
                         (CollisionResult {
                             col_type: CollisionType::Mirror,
