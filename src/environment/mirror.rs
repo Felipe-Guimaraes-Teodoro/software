@@ -17,24 +17,21 @@ pub const MIRROR_VS: &str = r#"
     uniform vec3 pos;
     uniform float angle;
 
+    uniform mat4 view;
+    uniform mat4 proj;
+
     uniform float width;
     uniform float height;
 
     void main() {
-        float aspectRatio = width / height;
-
-        float scaleX = 1.0 / aspectRatio;
-        float scaleY = 1.0;
-
         mat3 rot_mat = mat3(
             cos(angle), -sin(angle), 0,
             sin(angle), cos(angle), 0,
             0, 0, 0
         );
 
-        vec3 scaledPos = vec3(aPos.x * scaleX, aPos.y * scaleY, aPos.z);
-
-        gl_Position = vec4(scaledPos * rot_mat + pos, 1.0);
+        vec3 corrected_pos = vec3(pos.x * width / height, pos.y, pos.z);
+        gl_Position = proj * view * vec4(aPos * rot_mat + corrected_pos, 1.0);
     }
 "#;
 
@@ -86,13 +83,14 @@ impl Mirror {
         }
     }           
 
-    pub unsafe fn draw(&self, shader: &Shader, w: f32, h: f32) {
+    pub unsafe fn draw(&self, shader: &Shader, camera: &Camera, w: f32, h: f32) {
         shader.use_shader();
         shader.uniform_vec3f(cstr!("pos"), &self.pos);
         shader.uniform_1f(cstr!("angle"), self.angle);
         shader.uniform_vec3f(cstr!("color"), &vec3(0.51, 0.55, 0.8));
         shader.uniform_1f(cstr!("width"), w);
         shader.uniform_1f(cstr!("height"), h);
+        camera.send_uniforms(&shader);
         BindVertexArray(self.buf.vao_id);
         DrawElements(TRIANGLES, 6, UNSIGNED_INT, std::ptr::null());
         BindVertexArray(0);

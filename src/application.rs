@@ -12,7 +12,7 @@ pub struct Application {
     window: PWindow,
     glfw: Glfw,
     pub ui: Imgui,
-    renderer: Renderer,
+    pub renderer: Renderer,
     pub world: World,
     hud: Hud, 
 
@@ -64,7 +64,8 @@ impl Application {
 
     pub fn update(&mut self) {
         self.renderer.camera.update();
-        self.renderer.camera.input(&mut self.window, &self.glfw);
+        // we don't want to move the camera (for now)
+        // self.renderer.camera.input(&mut self.window, &self.glfw);
 
         let caster_handle = crate::physics::GLOBAL_CASTER.clone();
         let mut locked_caster = caster_handle.lock().unwrap();
@@ -93,7 +94,8 @@ impl Application {
     }
 
     pub fn mouse(&mut self, x: f32, y:f32) {
-        self.renderer.camera.mouse_callback(x, y, &self.window);
+        // we also dont want mouse moving camera
+        // self.renderer.camera.mouse_callback(x, y, &self.window);
     } 
 
     pub fn set_framebuffer_size(&mut self, width: i32, height: i32) {

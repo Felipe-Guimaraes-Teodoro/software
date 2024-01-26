@@ -3,6 +3,8 @@ use cgmath::Vector3;
 
 use std::f32::consts::PI;
 
+pub struct IntersectionResult {}
+
 pub struct Math {}
 pub struct Geometry {}
 pub struct SecondOrderDynamics { // make it so that input x yields in a smooth, natural output y
@@ -75,6 +77,10 @@ impl Geometry {
         }
 
         polygon
+    }
+
+    pub fn line_intersects_polygon2d() -> Option<IntersectionResult> {
+        todo!();
     }
 }
 

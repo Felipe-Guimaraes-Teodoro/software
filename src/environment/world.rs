@@ -131,7 +131,7 @@ impl World {
 impl Renderer {
     pub unsafe fn draw_world(&mut self, world: &World) {
         for mirror in &world.mirrors {
-            mirror.draw(&self.mirror_shader, world.width, world.height);
+            mirror.draw(&self.mirror_shader, &self.camera, world.width, world.height);
         }
     }
 }

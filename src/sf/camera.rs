@@ -83,11 +83,21 @@ impl Camera {
         }
     }
 
-    pub fn update(&mut self) {
-        self.view = Matrix4::look_at_rh(
-            Point3::from_vec(self.pos),
-            Point3::from_vec(self.pos + self.front),
-            self.up,
+    pub fn update(&mut self) { 
+        // self.view = Matrix4::look_at_rh(
+        //     Point3::from_vec(self.pos),
+        //     Point3::from_vec(self.pos + self.front),
+        //     self.up,
+        // );
+        //
+        self.view = Matrix4::new( //todo: fix this formatting... too lazy to do it now
+          1.0,     0.0, 0.0,    0.0,          
+
+          0.0,           1.0,     0.0,  0.0,          
+
+          0.0,  0.0,  1.0,      0.0  ,          
+
+          0.0,         0.0,            0.0,           1.0  ,          
         );
     }
 
@@ -126,7 +136,7 @@ impl Camera {
 
         let (w, h) = window.get_framebuffer_size();
         let aspect_ratio = w as f32 / h as f32;
-        self.proj = perspective(Deg(70.0), aspect_ratio, 0.1, 1000.0);
+        // self.proj = perspective(Deg(70.0), aspect_ratio, 0.1, 1000.0);
     }
 
     pub fn mouse_callback(
@@ -173,7 +183,7 @@ impl Camera {
 
 
     // RENDERING //
-    pub unsafe fn send_uniforms(&mut self, shader: &Shader) {
+    pub unsafe fn send_uniforms(&self, shader: &Shader) {
         shader.uniform_mat4fv(
             cstr!("view"),
             &self.view
@@ -197,6 +207,13 @@ impl Camera {
                 self.proj = ortho(-1.0, 1.0, -1.0, 1.0, -100.0, 100.0);
             }
         }
+    }
+
+    pub fn framebuffer_callback(&mut self, w: f32, h: f32) {
+        // match self.proj_type { ... }
+
+        let aspect_ratio = w / h;
+        self.proj = ortho(-aspect_ratio, aspect_ratio, -1.0, 1.0, -100.0, 100.0);
     }
 }
 

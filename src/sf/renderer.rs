@@ -20,7 +20,9 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new() -> Renderer {
-        let camera = Camera::new();
+        let mut camera = Camera::new();
+        camera.set_projection(ProjectionType::Orthographic);
+
         let polygon_shader = Shader::new_pipeline(POLYGON_VS, POLYGON_FS);
         let mirror_shader = Shader::new_pipeline(MIRROR_VS, MIRROR_FS);
 
