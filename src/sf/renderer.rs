@@ -2,7 +2,7 @@ use crate::sf::*;
 use crate::environment::*;
 
 pub trait Drawable {
-    unsafe fn draw(&self, shader: &Shader, w: f32, h: f32, camera: &Camera);
+    unsafe fn draw(&self, shader: &Shader, w: f32, h: f32, s: f32, r: f32, camera: &Camera);
 }
 
 pub struct Renderer {
@@ -50,9 +50,9 @@ impl Renderer {
         }
     }
 
-    pub fn r_draw<D: Drawable>(obj: D, shader: &Shader, w: f32, h: f32, camera: &Camera) {
+    pub fn r_draw<D: Drawable>(obj: D, shader: &Shader, w: f32, h: f32, s: f32, r: f32, camera: &Camera) {
         unsafe {
-            obj.draw(&shader, w, h, camera);
+            obj.draw(&shader, w, h, s, r, camera);
         }
     }
 }

@@ -14,6 +14,7 @@ pub const T_QUAD_VS: &str = r#"
     layout (location = 2) in vec2 aTexCoord;
 
     uniform vec3 pos;
+    uniform float scale;
 
     uniform mat4 view;
     uniform mat4 proj;
@@ -26,7 +27,7 @@ pub const T_QUAD_VS: &str = r#"
 
     void main() {
         vec3 corrected_pos = vec3(pos.x * (width / height), pos.y, pos.z);
-        gl_Position = proj * view * vec4(aPos + corrected_pos, 1.0);
+        gl_Position = proj * view * vec4(aPos * scale + corrected_pos, 1.0);
 
         Color = aColor;
         TexCoord = vec2(aTexCoord.x, aTexCoord.y);
@@ -43,14 +44,25 @@ pub const T_QUAD_FS: &str = r#"
     uniform sampler2D texture1;
 
     void main() {
-       FragColor = texture(texture1, TexCoord);
+        vec4 col = texture(texture1, TexCoord);
+
+        float whiteThreshold = 1.6;
+        float transition = smoothstep(
+            whiteThreshold - 0.25, 
+            whiteThreshold + 0.55, 
+            dot(col.rgb, vec3(1.0))
+        );
+
+        FragColor = mix(col, vec4(col.rgb, 0.0), transition);
     }
 "#; 
 
 #[derive(Copy, Clone, Debug)]
 pub struct TexturedQuad {
     buf: RVertexBufferTextured,
-    pos: Vector3<f32>,
+    pub pos: Vector3<f32>,
+    pub aspect_x: f32,
+    pub aspect_y: f32,
 }
 
 impl TexturedQuad {
@@ -73,6 +85,8 @@ impl TexturedQuad {
         Self {
             pos: vec3(0.0, 0.0, 0.0),
             buf,
+            aspect_x: 1.0,
+            aspect_y: 1.0,
         }
     }
 
@@ -95,6 +109,8 @@ impl TexturedQuad {
         Self {
             pos: vec3(0.0, 0.0, 0.0),
             buf,
+            aspect_x: w,
+            aspect_y: h,
         }
     }
 
@@ -105,7 +121,7 @@ impl TexturedQuad {
 
 
 impl Drawable for TexturedQuad {
-    unsafe fn draw(&self, shader: &super::Shader, w: f32, h: f32, camera: &Camera) {
+    unsafe fn draw(&self, shader: &super::Shader, w: f32, h: f32, s: f32, r: f32, camera: &Camera) {
         BindTexture(TEXTURE_2D, self.buf.texture_id);
         shader.use_shader();
         // pass uniforms
@@ -114,6 +130,8 @@ impl Drawable for TexturedQuad {
         shader.uniform_vec3f(cstr!("color"), &vec3(0.51, 0.55, 0.8));
         shader.uniform_1f(cstr!("width"), w);
         shader.uniform_1f(cstr!("height"), h);
+        shader.uniform_1f(cstr!("scale"), s);
+        shader.uniform_1f(cstr!("rotation"), r);
         camera.send_uniforms(&shader);
 
         BindVertexArray(self.buf.vao_id);

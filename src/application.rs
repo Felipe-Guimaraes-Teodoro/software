@@ -80,10 +80,10 @@ impl Application {
         ClearColor(0.0, 0.0, 0.0, 0.0); 
         Clear(COLOR_BUFFER_BIT);
 
-        self.hud.draw(self.width as f32, self.height as f32, &self.renderer.camera);
         self.renderer.draw(); 
         self.renderer.draw_world(&self.world);
         self.ui.draw();
+        self.hud.draw(self.width as f32, self.height as f32, &self.renderer.camera);
     }
 
     pub fn window_mut(&mut self) -> &mut Window {
@@ -97,12 +97,15 @@ impl Application {
     pub fn mouse(&mut self, x: f32, y:f32) {
         // we also dont want mouse moving camera
         // self.renderer.camera.mouse_callback(x, y, &self.window);
+        self.hud.mouse(x, y);
     } 
 
     pub fn set_framebuffer_size(&mut self, width: i32, height: i32) {
         self.width = width;
         self.height = height;
 
+        self.hud.w = width as f32;
+        self.hud.h = height as f32;
         self.world.set_framebuffer_size(width as f32, height as f32);
     }
 }

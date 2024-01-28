@@ -23,6 +23,10 @@ pub fn run() {
 
     // glfw.set_swap_interval(glfw::SwapInterval::Sync(0));
     gl::load_with(|s| window.get_proc_address(s) as * const _);
+    unsafe {
+        gl::Enable(gl::BLEND);
+        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+    }
 
     let mut app = Application::new(window, glfw);
 
