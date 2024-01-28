@@ -80,6 +80,7 @@ impl Application {
         ClearColor(0.0, 0.0, 0.0, 0.0); 
         Clear(COLOR_BUFFER_BIT);
 
+        self.hud.draw(self.width as f32, self.height as f32, &self.renderer.camera);
         self.renderer.draw(); 
         self.renderer.draw_world(&self.world);
         self.ui.draw();
