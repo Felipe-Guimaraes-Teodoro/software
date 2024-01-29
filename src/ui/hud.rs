@@ -4,6 +4,8 @@ use crate::sf::TexturedQuad;
 use crate::sf::{Renderer, Shader, T_QUAD_FS, T_QUAD_VS};
 use crate::sf::Camera;
 
+use glfw::Window;
+
 struct Frame {
     tex_quad: TexturedQuad,
     child_buttons: Vec<Button>,
@@ -14,11 +16,15 @@ enum ButtonState {
     Hovered,
     None,
 }
+
+use crate::util::SecondOrderDynamics;
 struct Button {
     // parent_frame: Option<Frame>,
     tex_quad: TexturedQuad,
+    flip_flop: bool,
     state: ButtonState,
     scale: f32,
+    sod: SecondOrderDynamics,
 }
 
 pub struct Hud {
@@ -50,13 +56,13 @@ impl Hud {
     }
 
 
-    pub unsafe fn draw(&mut self, w: f32, h: f32, camera: &Camera) {
+    pub unsafe fn draw(&mut self, w: f32, h: f32, camera: &Camera, window: &Window) {
         Renderer::r_draw(self.main_frame.tex_quad, &self.hud_shader, w, h, 1.0, 0.0, camera);
 
         for button in &mut self.main_frame.child_buttons {
-            button.tex_quad.draw(&self.hud_shader, w, h, button.scale, 0.0, camera);
+            button.tex_quad.draw(&self.hud_shader, w, h, button.scale, button.tex_quad.rot, camera);
 
-            button.update();
+            button.update(&window);
         }
     }
 
@@ -103,34 +109,53 @@ impl Button {
 
         Self {
             tex_quad,
+            flip_flop: false,
             state: ButtonState::None,
             scale: 1.0,
+            sod: SecondOrderDynamics::new(5.0, 0.5, 1.0, vec3(1.0, 0.0, 0.0)),
         }
     } 
 
     pub fn in_bounds(&self, x: f32, y: f32, w: f32, h: f32) -> bool {
         // dbg!(y);
-        let (x_pos, y_pos) = (self.tex_quad.pos.x * (w / 2.0), self.tex_quad.pos.y * (h / 2.0));
+        let (x_pos, y_pos) = ((self.tex_quad.pos.x * w / 2.0), (self.tex_quad.pos.y * h / 2.0));
+
+        let bound_x = 50.0 + x_pos;
+        let neg_bound_x = -50.0 + x_pos;
+        let bound_y = 50.0 - y_pos;
+        let neg_bound_y = -50.0 - y_pos;
 
         let verts = vec![
-             (0.5 * self.tex_quad.aspect_x * w / 2.0) + x_pos,  (0.5 * self.tex_quad.aspect_y * h / 2.0) + y_pos,
-             (0.5 * self.tex_quad.aspect_x * w / 2.0) + x_pos,  (-0.5 * self.tex_quad.aspect_y * h / 2.0) + y_pos,
-             (-0.5 * self.tex_quad.aspect_x * w / 2.0) + x_pos,  (-0.5 * self.tex_quad.aspect_y * h / 2.0) + y_pos,
-             (-0.5 * self.tex_quad.aspect_x * w / 2.0) + x_pos,  (0.5 * self.tex_quad.aspect_y * h / 2.0) + y_pos,
+             bound_y, bound_x,
+             bound_y, neg_bound_x,
+             neg_bound_y, neg_bound_x,
+             neg_bound_y, bound_x,
         ];
 
-        Geometry::in_point_inside_polygon2d(y - h / 1.38, x, &verts, w, h)
+        Geometry::in_point_inside_polygon2d(x, y, &verts, w, h)
     } 
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, window: &Window) {
         match self.state {
             ButtonState::Hovered => {
-                // use SOD here!
-                self.scale = 1.5; 
+                let y = self.sod.update(0.01, vec3(1.5, 0.0, 0.0));
+                
+                if window.get_mouse_button(glfw::MouseButton::Button1) == glfw::Action::Press {
+                    self.flip_flop = !self.flip_flop;
+                    if self.flip_flop == true {
+                        self.tex_quad.rot = 3.1415;
+                    } else {
+                        self.tex_quad.rot = 0.0; 
+                    }
+                    self.state = ButtonState::None;
+                }
+
+                self.scale = y.x; 
             },
 
             ButtonState::None => {
-                self.scale = 1.0;
+                let y = self.sod.update(0.01, vec3(1.0, 0.0, 0.0));
+                self.scale = y.x;
                 self.state = ButtonState::None;
             },
         }

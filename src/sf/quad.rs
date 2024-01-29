@@ -15,6 +15,7 @@ pub const T_QUAD_VS: &str = r#"
 
     uniform vec3 pos;
     uniform float scale;
+    uniform float angle;
 
     uniform mat4 view;
     uniform mat4 proj;
@@ -27,7 +28,15 @@ pub const T_QUAD_VS: &str = r#"
 
     void main() {
         vec3 corrected_pos = vec3(pos.x * (width / height), pos.y, pos.z);
-        gl_Position = proj * view * vec4(aPos * scale + corrected_pos, 1.0);
+
+        mat3 rot_mat = mat3(
+            cos(angle), -sin(angle), 0,
+            sin(angle), cos(angle), 0,
+            0, 0, 0
+        );
+
+        gl_Position = proj * view * vec4(aPos * scale * rot_mat + corrected_pos, 1.0);
+
 
         Color = aColor;
         TexCoord = vec2(aTexCoord.x, aTexCoord.y);
@@ -61,6 +70,7 @@ pub const T_QUAD_FS: &str = r#"
 pub struct TexturedQuad {
     buf: RVertexBufferTextured,
     pub pos: Vector3<f32>,
+    pub rot: f32,
     pub aspect_x: f32,
     pub aspect_y: f32,
 }
@@ -83,6 +93,7 @@ impl TexturedQuad {
         let buf = RVertexBufferTextured::new((&verts, &inds, &image));
 
         Self {
+            rot: 0.0,
             pos: vec3(0.0, 0.0, 0.0),
             buf,
             aspect_x: 1.0,
@@ -108,6 +119,7 @@ impl TexturedQuad {
 
         Self {
             pos: vec3(0.0, 0.0, 0.0),
+            rot: 0.0,
             buf,
             aspect_x: w,
             aspect_y: h,
@@ -131,7 +143,7 @@ impl Drawable for TexturedQuad {
         shader.uniform_1f(cstr!("width"), w);
         shader.uniform_1f(cstr!("height"), h);
         shader.uniform_1f(cstr!("scale"), s);
-        shader.uniform_1f(cstr!("rotation"), r);
+        shader.uniform_1f(cstr!("angle"), r);
         camera.send_uniforms(&shader);
 
         BindVertexArray(self.buf.vao_id);

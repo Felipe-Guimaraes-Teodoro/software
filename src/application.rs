@@ -83,7 +83,7 @@ impl Application {
         self.renderer.draw(); 
         self.renderer.draw_world(&self.world);
         self.ui.draw();
-        self.hud.draw(self.width as f32, self.height as f32, &self.renderer.camera);
+        self.hud.draw(self.width as f32, self.height as f32, &self.renderer.camera, &self.window);
     }
 
     pub fn window_mut(&mut self) -> &mut Window {

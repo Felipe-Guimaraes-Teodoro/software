@@ -110,7 +110,6 @@ impl SecondOrderDynamics {
         //     xd = (x - self.xp) / timestep;
         //     self.xp = x;
         // } 
-
         let xd = (x - self.xp) / timestep;
         self.xp = x;
 
@@ -119,6 +118,7 @@ impl SecondOrderDynamics {
 
         self.y
     }
+
 
     pub fn set_starting_point(&mut self, x: Vector3<f32>) {
         todo!();
