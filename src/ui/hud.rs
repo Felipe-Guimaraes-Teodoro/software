@@ -9,6 +9,12 @@ use glfw::Window;
 struct Frame {
     tex_quad: TexturedQuad,
     child_buttons: Vec<Button>,
+    rot: f32,
+    scale: f32,
+
+    sod: SecondOrderDynamics,
+
+    deployed: bool,
 }
 
 #[derive(PartialEq, Debug)]
@@ -57,7 +63,18 @@ impl Hud {
 
 
     pub unsafe fn draw(&mut self, w: f32, h: f32, camera: &Camera, window: &Window) {
-        Renderer::r_draw(self.main_frame.tex_quad, &self.hud_shader, w, h, 1.0, 0.0, camera);
+        Renderer::r_draw(
+            self.main_frame.tex_quad, 
+            &self.hud_shader, 
+            w, 
+            h, 
+            self.main_frame.scale, 
+            self.main_frame.rot, 
+            camera
+        );
+
+        self.main_frame.deployed = self.main_frame.child_buttons[0].flip_flop;
+        self.main_frame.update();
 
         for button in &mut self.main_frame.child_buttons {
             button.tex_quad.draw(&self.hud_shader, w, h, button.scale, button.tex_quad.rot, camera);
@@ -95,6 +112,25 @@ impl Frame {
         Self {
             tex_quad,
             child_buttons,
+            scale: 1.0,
+            rot: 0.0,
+
+            deployed: false,
+            sod: SecondOrderDynamics::new(5.0, 0.5, 1.0, vec3(0.0, -1.0, 0.0)),
+        }
+    }
+
+    pub fn update(&mut self) {
+        match self.deployed {
+            false => {
+                let y = self.sod.update(0.01, vec3(0.0, -1.0, 0.0));
+                self.tex_quad.pos = y;
+            },
+
+            true => {
+                let y = self.sod.update(0.01, vec3(0.0, -1.23, 0.0));
+                self.tex_quad.pos = y;
+            },
         }
     }
 }
@@ -112,7 +148,7 @@ impl Button {
             flip_flop: false,
             state: ButtonState::None,
             scale: 1.0,
-            sod: SecondOrderDynamics::new(5.0, 0.5, 1.0, vec3(1.0, 0.0, 0.0)),
+            sod: SecondOrderDynamics::new(5.0, 0.5, 1.0, vec3(1.0, -0.724, 0.0)),
         }
     } 
 
@@ -138,7 +174,14 @@ impl Button {
     pub fn update(&mut self, window: &Window) {
         match self.state {
             ButtonState::Hovered => {
-                let y = self.sod.update(0.01, vec3(1.5, 0.0, 0.0));
+                let mut goal_pos = vec3(1.5, -0.724, 0.0);
+                if self.flip_flop == true {
+                    goal_pos = vec3(1.5, -0.924, 0.0);
+                } else {
+                    goal_pos = vec3(1.5, -0.724, 0.0);
+                }
+                let y = self.sod.update(0.01, goal_pos);
+                self.tex_quad.pos.y = y.y; 
                 
                 if window.get_mouse_button(glfw::MouseButton::Button1) == glfw::Action::Press {
                     self.flip_flop = !self.flip_flop;
@@ -154,8 +197,15 @@ impl Button {
             },
 
             ButtonState::None => {
-                let y = self.sod.update(0.01, vec3(1.0, 0.0, 0.0));
+                let mut goal_pos = vec3(1.5, -0.724, 0.0);
+                if self.flip_flop == true {
+                    goal_pos = vec3(1.0, -0.924, 0.0);
+                } else {
+                    goal_pos = vec3(1.0, -0.724, 0.0);
+                }
+                let y = self.sod.update(0.01, goal_pos);
                 self.scale = y.x;
+                self.tex_quad.pos.y = y.y; 
                 self.state = ButtonState::None;
             },
         }
