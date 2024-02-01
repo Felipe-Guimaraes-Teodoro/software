@@ -3,6 +3,7 @@ use crate::sf::Buffer;
 use crate::sf::TexturedQuad;
 use crate::sf::{Renderer, Shader, T_QUAD_FS, T_QUAD_VS};
 use crate::sf::Camera;
+use crate::environment::World;
 
 use glfw::Window;
 
@@ -62,7 +63,14 @@ impl Hud {
     }
 
 
-    pub unsafe fn draw(&mut self, w: f32, h: f32, camera: &Camera, window: &Window) {
+    pub unsafe fn draw(
+        &mut self, 
+        w: f32, 
+        h: f32, 
+        camera: &Camera, 
+        window: &Window, 
+        world: &mut World,
+    ) {
         Renderer::r_draw(
             self.main_frame.tex_quad, 
             &self.hud_shader, 
@@ -70,7 +78,7 @@ impl Hud {
             h, 
             self.main_frame.scale, 
             self.main_frame.rot, 
-            camera
+            camera,
         );
 
         self.main_frame.deployed = self.main_frame.child_buttons[0].flip_flop;
@@ -78,6 +86,7 @@ impl Hud {
 
         for button in &mut self.main_frame.child_buttons {
             button.tex_quad.draw(&self.hud_shader, w, h, button.scale, button.tex_quad.rot, camera);
+            world.hud_button_callback(); 
 
             button.update(&window);
         }

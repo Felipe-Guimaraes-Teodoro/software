@@ -125,6 +125,11 @@ impl World {
         self.width = width;
         self.height = height;
     }
+
+    pub fn hud_button_callback(&mut self, ) {
+        // fn h..callback( callback_type: ButtonType, )
+        // todo...
+    }
 }
 
 // implement world draw method
