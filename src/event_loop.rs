@@ -20,7 +20,6 @@ pub fn run() {
     window.set_framebuffer_size_polling(true);
     window.make_current();
 
-
     // glfw.set_swap_interval(glfw::SwapInterval::Sync(0));
     gl::load_with(|s| window.get_proc_address(s) as * const _);
     unsafe {
@@ -75,7 +74,7 @@ fn handle_window_event(app: &mut Application, event: glfw::WindowEvent) {
         },
         WindowEvent::Scroll(x, y) => {
             app.ui.on_mouse_scroll(x as f32, y as f32);
-            app.world.scroll_wheel(y as f32); 
+            app.surface.scroll(y as f32);
         },
         WindowEvent::CursorPos(x, y) => {
             let (x, y) = (x as f32, y as f32);
