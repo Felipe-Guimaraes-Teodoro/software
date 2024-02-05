@@ -67,11 +67,13 @@ pub const SURFACE_FS: &str = r#"
     }
 "#;
 
+use crate::util::SecondOrderDynamics;
 pub struct Surface {
     buf: RVertexBufferIndexed,
     shader: Shader,
     pos: Vector3<f32>,
     zoom: f32,
+    sod: SecondOrderDynamics,
 }
 
 impl Surface {
@@ -92,19 +94,22 @@ impl Surface {
 
         let shader = Shader::new_pipeline(SURFACE_VS, SURFACE_FS);
 
+        let sod = SecondOrderDynamics::new(0.5, 1.0, 0.5, vec3(0.5, 0.0, 0.0));
+
         Self {
             buf,
             shader,
             pos: vec3(0.0, 0.0, 0.0),
-            zoom: 1.0,
+            zoom: 0.5,
+            sod,
         }
     }
 
-    pub unsafe fn draw(&self, camera: &Camera, w: f32, h: f32) {
+    pub unsafe fn draw(&mut self, camera: &Camera, w: f32, h: f32) {
         self.shader.use_shader();
         camera.send_uniforms(&self.shader);
         self.shader.uniform_vec3f(cstr!("cpos"), &self.pos);
-        self.shader.uniform_1f(cstr!("zoom"), self.zoom);
+        self.shader.uniform_1f(cstr!("zoom"), self.sod.update(0.1, vec3(self.zoom, 0.0, 0.0)).x);
         self.shader.uniform_1f(cstr!("w"), w / h);
         BindVertexArray(self.buf.vao_id);
         DrawElements(TRIANGLES, 6, UNSIGNED_INT, std::ptr::null());
