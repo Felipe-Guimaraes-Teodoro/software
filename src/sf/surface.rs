@@ -31,7 +31,10 @@ pub const SURFACE_FS: &str = r#"
     out vec4 FragColor;
 
     uniform vec3 cpos;
+    uniform vec3 jul;
+
     uniform float zoom;
+    uniform float iterations;
 
     in vec3 pos;
 
@@ -51,9 +54,9 @@ pub const SURFACE_FS: &str = r#"
         vec2 norm_coords = pos.xy * vec2(0.5);
         vec2 c = 1.0 / pow(2.0, zoom) * norm_coords - cpos.xy;
 
-        vec2 z = vec2(0.0, 0.0);
+        vec2 z = jul.xy;
         float i;
-        for (i = 0.0; i < 1.0; i += 0.005) {
+        for (i = 0.0; i < iterations; i += 1.0) {
             z = vec2(
                 z.x * z.x - z.y * z.y + c.x,
                 z.y * z.x + z.x * z.y + c.y
@@ -63,7 +66,7 @@ pub const SURFACE_FS: &str = r#"
             }
         }
 
-        FragColor = vec4(hash13(i), 1.0);
+        FragColor = vec4(vec3(i / iterations), 1.0);
     }
 "#;
 
@@ -76,6 +79,7 @@ pub struct Surface {
     sod: SecondOrderDynamics,
 }
 
+use crate::application::{FRAC_ITER, JULIA_VEC};
 impl Surface {
     pub fn new() -> Self {
         let verts = vec![
@@ -109,8 +113,12 @@ impl Surface {
         self.shader.use_shader();
         camera.send_uniforms(&self.shader);
         self.shader.uniform_vec3f(cstr!("cpos"), &self.pos);
+        self.shader.uniform_vec3f(cstr!("jul"), &JULIA_VEC.clone().lock().unwrap());
+
         self.shader.uniform_1f(cstr!("zoom"), self.sod.update(0.1, vec3(self.zoom, 0.0, 0.0)).x);
         self.shader.uniform_1f(cstr!("w"), w / h);
+        // println!("{:?}", *FRAC_ITER.clone().lock().unwrap());
+        self.shader.uniform_1f(cstr!("iterations"), *FRAC_ITER.clone().lock().unwrap());
         BindVertexArray(self.buf.vao_id);
         DrawElements(TRIANGLES, 6, UNSIGNED_INT, std::ptr::null());
         BindVertexArray(0);

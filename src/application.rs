@@ -6,6 +6,16 @@ use crate::ui::Hud;
 use crate::{sf::*, ui::Imgui};
 use crate::environment::World;
 
+use once_cell::sync::Lazy;
+
+pub static FRAC_ITER: Lazy<Arc<Mutex<f32>>> = Lazy::new(|| {
+    Arc::new(Mutex::new(128.0))
+});
+
+pub static JULIA_VEC: Lazy<Arc<Mutex<cgmath::Vector3<f32>>>> = Lazy::new(|| {
+    Arc::new(Mutex::new(cgmath::vec3(0.0, 0.0, 0.0)))
+});
+
 use std::sync::{Arc, Mutex};
 
 pub struct Application {
@@ -48,6 +58,11 @@ impl Application {
         let fdl = frame.get_foreground_draw_list();
 
         frame.text(format!("{:?}", 1.0/self.renderer.camera.dt));
+        frame.slider("Iterations", 8.0, 512.0, &mut FRAC_ITER.clone().lock().unwrap());
+        frame.spacing();
+        frame.text("JULIA");
+        frame.slider("julia_x", -2.0, 2.0, &mut JULIA_VEC.clone().lock().unwrap().x);
+        frame.slider("julia_y", -2.0, 2.0, &mut JULIA_VEC.clone().lock().unwrap().y);
     } 
 
     pub fn update(&mut self) {
