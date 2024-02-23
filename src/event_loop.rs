@@ -20,7 +20,7 @@ pub fn run() {
     window.set_framebuffer_size_polling(true);
     window.make_current();
 
-    // glfw.set_swap_interval(glfw::SwapInterval::Sync(0));
+    glfw.set_swap_interval(glfw::SwapInterval::Sync(0));
     gl::load_with(|s| window.get_proc_address(s) as * const _);
     unsafe {
         gl::Enable(gl::BLEND);

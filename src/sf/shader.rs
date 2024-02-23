@@ -77,6 +77,8 @@ impl Shader {
             GetUniformLocation(self.id, name.as_ptr()),
             vec.x, vec.y, vec.z
         );
+
+        CStr::from("a");
     }
 }
 
